@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "ui", "runtimeExecutable": "python", "runtimeArgs": ["ui.py", "--sin-navegador"], "port": 8765 }
+  ]
+}

@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agente de compras en vivo</title>
+<style>
+:root{
+  --bg:#f6f5f2; --panel:#ffffff; --ink:#1d1d1b; --muted:#6b6a66; --line:#e4e2dc;
+  --grok:#2f6fdb; --grok-soft:#e8f0fd; --jev:#8a4fd8; --jev-soft:#f2eafc;
+  --ok:#1f8a4c; --ok-soft:#e5f4ea; --warn:#b26b00; --warn-soft:#fdf1dc; --bad:#c23b32; --bad-soft:#fbe7e5;
+  --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#141413; --panel:#1e1e1c; --ink:#ecebe7; --muted:#9c9b96; --line:#2f2f2c;
+  --grok:#6c9cf0; --grok-soft:#1b2740; --jev:#b48af0; --jev-soft:#2a1f3d;
+  --ok:#4cc27e; --ok-soft:#173023; --warn:#e3a443; --warn-soft:#352812; --bad:#ef6b62; --bad-soft:#3a1c1a;
+}}
+:root[data-theme="dark"]{
+  --bg:#141413; --panel:#1e1e1c; --ink:#ecebe7; --muted:#9c9b96; --line:#2f2f2c;
+  --grok:#6c9cf0; --grok-soft:#1b2740; --jev:#b48af0; --jev-soft:#2a1f3d;
+  --ok:#4cc27e; --ok-soft:#173023; --warn:#e3a443; --warn-soft:#352812; --bad:#ef6b62; --bad-soft:#3a1c1a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
+h1{font-size:17px;margin:0 12px 0 0}
+.ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+select,input,button{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:5px 9px}
+button.primario{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600;cursor:pointer;padding:6px 16px}
+button:disabled{opacity:.5;cursor:default}
+.chip{font-size:12px;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.chip b{color:var(--ink);font-weight:600}
+.chip.grok{border-color:var(--grok);color:var(--grok)} .chip.jev{border-color:var(--jev);color:var(--jev)}
+.chip.aviso{border-color:var(--warn);color:var(--warn)}
+main{padding:16px 20px 40px;max-width:1500px;margin:0 auto}
+.etapas{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+.etapa{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13px;position:relative;overflow:hidden}
+.etapa .n{font-weight:700;color:var(--muted);margin-right:4px}
+.etapa small{display:block;color:var(--muted);font-size:12px;margin-top:2px;min-height:17px}
+.etapa.activa{border-color:var(--ink)} .etapa.activa::after{content:"";position:absolute;left:0;bottom:0;height:3px;width:40%;background:var(--ink);animation:barra 1.1s ease-in-out infinite}
+.etapa.hecha .n{color:var(--ok)}
+@keyframes barra{0%{left:-40%}100%{left:100%}}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.panel>.cab{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.panel>.cab h2{font-size:15px;margin:0}
+.panel>.cab .rol{color:var(--muted);font-size:12px}
+.panel>.cab .stats{margin-left:auto;font:12px var(--mono);color:var(--muted)}
+.punto{width:10px;height:10px;border-radius:50%;background:var(--line);flex:none}
+.punto.vivo{animation:latido 1s infinite}
+.grok .punto{background:var(--grok)} .jev .punto{background:var(--jev)}
+@keyframes latido{50%{opacity:.25}}
+.aviso-panel{font-size:12px;padding:7px 14px;background:var(--warn-soft);color:var(--warn);border-bottom:1px solid var(--line);display:none}
+.feed{max-height:62vh;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.vacio{color:var(--muted);text-align:center;padding:30px 10px;font-size:13px}
+.card{border:1px solid var(--line);border-radius:9px;padding:9px 11px;animation:entra .25s ease-out}
+@keyframes entra{from{opacity:0;transform:translateY(4px)}}
+.grok .card.trabajando{border-color:var(--grok);background:var(--grok-soft)}
+.jev .card.trabajando{border-color:var(--jev);background:var(--jev-soft)}
+.card .t{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.card .t b{font-size:13.5px}
+.card .t .der{margin-left:auto;font:12px var(--mono);color:var(--muted)}
+.sub{color:var(--muted);font-size:12px}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:gira .7s linear infinite;vertical-align:-1px}
+@keyframes gira{to{transform:rotate(1turn)}}
+details{margin-top:6px} summary{cursor:pointer;color:var(--muted);font-size:12px}
+pre{white-space:pre-wrap;font:12px/1.4 var(--mono);background:var(--bg);border-radius:6px;padding:8px;margin:6px 0 0;max-height:220px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--line);padding:4px 6px}
+td{padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num,th.num{text-align:right;font-family:var(--mono);white-space:nowrap}
+.mini td{border:0;padding:2px 4px}
+.nulo{color:var(--bad)}
+.preg{display:grid;grid-template-columns:118px 1fr 92px;gap:8px;align-items:center;font-size:12.5px;margin-top:5px}
+.preg .lbl{color:var(--muted)}
+.barra{height:7px;background:var(--bg);border-radius:4px;position:relative;overflow:visible}
+.barra i{position:absolute;inset:0 auto 0 0;border-radius:4px;background:var(--jev)}
+.barra i.baja{background:var(--warn)}
+.barra .umbral{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.55}
+.preg .val{font-family:var(--mono);text-align:right}
+.badge{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px}
+.b-apta{background:var(--ok-soft);color:var(--ok)} .b-revision{background:var(--warn-soft);color:var(--warn)}
+.b-descartada{background:var(--bad-soft);color:var(--bad)} .b-elegida{background:var(--ok);color:var(--panel)}
+.motivo{font-size:12px;color:var(--muted);margin-top:5px}
+.card.elegida{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok) inset}
+.card.descartada{opacity:.62}
+.votos{font:11.5px var(--mono);color:var(--muted);margin-top:5px}
+.et{display:flex;gap:3px;justify-content:flex-end}
+.et button{padding:0 6px;font-size:11px;line-height:17px;border-radius:5px;cursor:pointer;background:transparent}
+.et button.si{border-color:var(--ok);color:var(--ok)} .et button.no{border-color:var(--bad);color:var(--bad)}
+.et .hecho{font-size:11px;color:var(--muted)}
+.preg{grid-template-columns:118px 1fr 80px 64px}
+.abajo{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:16px;margin-top:16px;align-items:start}
+.cuerpo{padding:10px 14px}
+.total{font:600 16px var(--mono);text-align:right;margin-top:8px}
+.prov{margin:6px 0 12px} .prov h3{font-size:13.5px;margin:0 0 4px;display:flex;gap:8px}
+.prov h3 span{margin-left:auto;font-family:var(--mono)}
+.lista{margin:6px 0 0;padding-left:18px;font-size:12.5px}
+.lista li{margin:2px 0}
+.titulito{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:12px 0 4px}
+.error{background:var(--bad-soft);color:var(--bad);border:1px solid var(--bad);border-radius:9px;padding:10px 14px;margin-bottom:14px;display:none;font-family:var(--mono);font-size:13px}
+.urg{color:var(--bad);font-weight:600}
+@media (max-width:1100px){.cols,.abajo{grid-template-columns:1fr}.etapas{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:600px){header,main{padding-left:16px;padding-right:16px}.etapas{grid-template-columns:1fr}.preg{grid-template-columns:96px 1fr 72px 58px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Agente de compras · en vivo</h1>
+  <div class="ctl">
+    <select id="modo" title="Modo">
+      <option value="1">Mock (sin APIs)</option>
+      <option value="0">Real (Grok)</option>
+    </select>
+    <input id="hoy" type="date" title="Fecha de pronóstico">
+    <label class="sub" id="lblPausa">ritmo <input id="pausa" type="range" min="0" max="1.2" step="0.05" value="0.35" style="width:80px;vertical-align:middle;padding:0"></label>
+    <button class="primario" id="correr">Correr</button>
+  </div>
+  <div class="ctl" style="margin-left:auto">
+    <span class="chip grok" id="chipGrok">Grok: —</span>
+    <span class="chip jev" id="chipJuez">Juez: —</span>
+    <span class="chip" id="chipTokens" title="tokens de la corrida">tokens: —</span>
+    <span class="chip" id="chipReglas">—</span>
+    <a class="chip" href="/tutorial" title="Guía paso a paso" style="text-decoration:none;color:var(--ink);font-weight:600">? Cómo funciona</a>
+  </div>
+</header>
+
+<main>
+  <div class="error" id="error"></div>
+
+  <div class="etapas" id="etapas"></div>
+
+  <div class="cols">
+    <section class="panel grok">
+      <div class="cab"><span class="punto" id="ptGrok"></span><h2>Grok</h2><span class="rol">lee cotizaciones → ofertas normalizadas</span><span class="stats" id="stGrok"></span></div>
+      <div class="aviso-panel" id="avGrok"></div>
+      <div class="feed" id="feedGrok"><div class="vacio">Esperando corrida…</div></div>
+    </section>
+    <section class="panel jev">
+      <div class="cab"><span class="punto" id="ptJev"></span><h2 id="tituloJuez">Juez</h2><span class="rol">3 preguntas tipadas · confianza por votación · proveedor por historial</span><span class="stats" id="stJev"></span></div>
+      <div class="aviso-panel" id="avJev"></div>
+      <div class="feed" id="feedJev"><div class="vacio">Esperando corrida…</div></div>
+    </section>
+  </div>
+
+  <div class="abajo">
+    <section class="panel"><div class="cab"><h2>Demanda</h2><span class="rol">qué falta para el horizonte</span></div>
+      <div class="cuerpo" id="demanda"><div class="vacio">—</div></div></section>
+    <section class="panel"><div class="cab"><h2>Plan de compra</h2><span class="rol">optimizador</span></div>
+      <div class="cuerpo" id="plan"><div class="vacio">—</div></div></section>
+    <section class="panel"><div class="cab"><h2>Reporte</h2><span class="rol" id="rolReporte">mensaje para el dueño</span></div>
+      <div class="cuerpo"><pre id="reporte" style="max-height:480px;margin:0">—</pre></div></section>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const cop = x => "$" + Math.round(x).toLocaleString("es-CO");
+const ETAPAS = ["Demanda","Búsqueda (Grok)","Juicio","Optimización","Reporte"];
+let st, fuente = null;
+
+function reiniciar(){
+  st = {umbral:0.7, grok:{n:0,ms:0,ofertas:0,tok:0}, jev:{n:0,ms:0,tok:0,apta:0,revision:0,descartada:0},
+        inicio:{}, cards:{}, ofertas:{}, juicios:{}, real: st ? st.real : false};
+  $("chipTokens").textContent = "tokens: —";
+  $("etapas").innerHTML = ETAPAS.map((e,i)=>`<div class="etapa" id="et${i+1}"><span class="n">${i+1}</span>${e}<small></small></div>`).join("");
+  for (const id of ["feedGrok","feedJev"]) $(id).innerHTML = '<div class="vacio">Esperando…</div>';
+  $("demanda").innerHTML = $("plan").innerHTML = '<div class="vacio">—</div>';
+  $("reporte").textContent = "—"; $("error").style.display = "none";
+  stats();
+}
+function stats(){
+  const g = st.grok, j = st.jev;
+  $("stGrok").textContent = g.n ? `${g.n} llamadas · ${g.ofertas} ofertas · ${g.ms ? Math.round(g.ms/g.n)+" ms/llam." : "mock"}${g.tok ? " · "+g.tok.toLocaleString("es-CO")+" tok" : ""}` : "";
+  $("stJev").textContent = j.n ? `${j.n} juicios · ✓${j.apta} ?${j.revision} ✗${j.descartada} · ${Math.round(j.ms/j.n)} ms${j.tok ? " · "+Math.round(j.tok/j.n)+" tok/juicio" : ""}` : "";
+}
+
+async function cargarEstado(){
+  try {
+    const e = await (await fetch("/estado")).json();
+    st.etiquetas = e.etiquetas;
+    $("chipReglas").innerHTML = `umbral <b>${e.umbral}</b> · calidad mín. <b>${e.calidad_minima}</b>`;
+    if (!e.tiene_grok) $("modo").options[1].text = "Real (falta XAI_API_KEY)";
+    pintarAgentes({mock: $("modo").value==="1", grok: e.grok_model,
+                   juez_model: e.juez_model, muestras: e.muestras, calibrado: e.calibrado, etiquetas: e.etiquetas});
+  } catch {}
+}
+function pintarAgentes(a){
+  const mock = a.mock;
+  st.real = !mock;
+  $("chipGrok").innerHTML = mock ? "Grok: <b>mock</b>" : `Grok: <b>${esc(a.grok)}</b>`;
+  $("chipJuez").innerHTML = mock ? "Juez: <b>heurístico (mock)</b>" : `Juez: <b>${esc(a.juez_model)} × ${a.muestras} votos</b>`;
+  $("chipJuez").className = "chip " + (mock ? "aviso" : "jev");
+  $("tituloJuez").textContent = mock ? "Juez (simulado)" : "Juez · Grok por votación";
+  const avJ = $("avJev"), avG = $("avGrok"), bien = !mock && a.calibrado;
+  avJ.style.display = "block";
+  avJ.style.background = bien ? "var(--ok-soft)" : "";
+  avJ.style.color = bien ? "var(--ok)" : "";
+  avJ.textContent = mock ? "Modo mock: un juez de reglas simula las respuestas; no se llama a Grok."
+    : bien ? `Confianzas calibradas con tus etiquetas (${a.etiquetas}). Marca ✓/✗ para seguir afinándolas.`
+    : `Confianzas por votación, aún sin calibrar (${a.etiquetas||0} etiquetas). Marca ✓/✗ en cada respuesta y luego corre: python calibrar.py`;
+  avG.style.display = mock ? "block" : "none";
+  avG.textContent = "Modo mock: las ofertas vienen de data/ofertas_mock.json (no se llama a Grok).";
+  if (a.umbral) { st.umbral = a.umbral; $("chipReglas").innerHTML = `umbral <b>${a.umbral}</b> · calidad mín. <b>${esc(a.calidad_minima)}</b>`; }
+}
+function pintarUso(u){
+  if (!u || !u.llamadas) return;
+  $("chipTokens").innerHTML = `tokens: <b>${(u.entrada+u.salida).toLocaleString("es-CO")}</b> · ${u.llamadas} llam.`
+    + (u.cache ? ` · ${Math.round(100*u.cache/u.entrada)}% de la entrada en caché` : "")
+    + (u.razonamiento ? ` · razon. ${u.razonamiento.toLocaleString("es-CO")}` : "");
+}
+
+function etapa(ev){
+  const el = $("et"+ev.n); if (!el) return;
+  const sm = el.querySelector("small");
+  if (ev.estado==="inicio"){ el.className="etapa activa"; st.inicio[ev.n]=ev.t;
+    if (ev.n===2) $("ptGrok").classList.add("vivo");
+    if (ev.n===3) $("ptJev").classList.add("vivo");
+    if (ev.n===5 && ev.agente==="grok"){ $("ptGrok").classList.add("vivo"); $("rolReporte").textContent="Grok está redactando…"; }
+    return; }
+  el.className = "etapa hecha"; pintarUso(ev.uso);
+  const seg = ((ev.t - (st.inicio[ev.n]||ev.t))).toFixed(1)+" s";
+  if (ev.n===1){ sm.textContent = `${ev.necesidades.length} insumos · ${seg}`; pintarDemanda(ev); }
+  if (ev.n===2){ sm.textContent = `${ev.ofertas} ofertas · ${seg}`; $("ptGrok").classList.remove("vivo"); }
+  if (ev.n===3){ sm.textContent = `${ev.evaluadas} juicios · ${seg}`; $("ptJev").classList.remove("vivo"); }
+  if (ev.n===4){ sm.textContent = `${cop(ev.plan.total_cop)}`; pintarPlan(ev.plan);
+    for (const i of ev.elegidas){ const c = st.cards[i]; if (c){ c.classList.add("elegida");
+      c.querySelector(".t .der").insertAdjacentHTML("beforebegin",'<span class="badge b-elegida">✓ al plan</span>'); } } }
+  if (ev.n===5){ sm.textContent = seg; $("ptGrok").classList.remove("vivo"); $("reporte").textContent = ev.texto;
+    $("rolReporte").textContent = ev.ms > 50 ? `redactado por Grok · ${ev.ms} ms` : "plantilla (sin Grok)"; }
+}
+
+function nuevaCard(feedId, html, clase){
+  const feed = $(feedId); const v = feed.querySelector(".vacio"); if (v) v.remove();
+  const d = document.createElement("div"); d.className = "card " + (clase||""); d.innerHTML = html;
+  feed.prepend(d); return d;
+}
+
+function extraccionInicio(ev){
+  st.cards["g:"+ev.archivo] = nuevaCard("feedGrok",
+    `<div class="t"><b>${esc(ev.archivo)}</b><span class="der"><span class="spin"></span> leyendo…</span></div>
+     <details><summary>texto crudo de la cotización</summary><pre>${esc(ev.texto)}</pre></details>`, "trabajando");
+}
+function extraccionFin(ev){
+  const c = st.cards["g:"+ev.archivo]; if (!c) return;
+  c.classList.remove("trabajando");
+  st.grok.n++; st.grok.ms += ev.ms; st.grok.ofertas += ev.ofertas.length;
+  if (ev.tokens) st.grok.tok += ev.tokens.entrada + ev.tokens.salida;
+  stats();
+  const prov = ev.ofertas[0]?.proveedor || ev.archivo;
+  c.querySelector(".t").innerHTML = `<b>${esc(prov)}</b><span class="sub">${esc(ev.archivo)}.txt</span>
+    <span class="der">${ev.ofertas.length} ofertas${ev.ms ? " · "+ev.ms+" ms" : ""}</span>`;
+  const filas = ev.ofertas.map(o => `<tr>
+      <td>${esc(o.producto)}${o.disponible ? "" : ' <span class="nulo">(agotado)</span>'}</td>
+      <td>${o.insumo ? esc(o.insumo) : '<span class="nulo">— no aplica</span>'}</td>
+      <td class="num">${o.cantidad_presentacion} ${esc(o.unidad)}</td>
+      <td class="num">${cop(o.precio_presentacion)}</td>
+      <td class="num">${cop(o.precio_unitario)}/${esc(o.unidad)}</td></tr>`).join("");
+  c.querySelector("details").insertAdjacentHTML("beforebegin",
+    `<table class="mini" style="margin-top:6px"><tr><th>producto</th><th>→ insumo</th><th class="num">pres.</th><th class="num">precio</th><th class="num">unit.</th></tr>${filas}</table>`);
+  const o0 = ev.ofertas[0];
+  if (o0) c.querySelector("details").insertAdjacentHTML("beforebegin",
+    `<div class="sub" style="margin-top:4px">mín. ${cop(o0.pedido_minimo_cop)} · envío ${cop(o0.costo_envio_cop)}${o0.envio_gratis_desde_cop ? " (gratis desde "+cop(o0.envio_gratis_desde_cop)+")" : ""} · entrega ${o0.tiempo_entrega_horas ?? "?"} h</div>`);
+}
+
+function juicioInicio(ev){
+  const o = ev.oferta; st.ofertas[ev.id] = o;
+  st.cards[ev.id] = nuevaCard("feedJev",
+    `<div class="t"><b>${esc(o.producto)}</b><span class="sub">${esc(o.proveedor)}</span>
+       <span class="der"><span class="spin"></span> juzgando…</span></div>
+     <div class="sub">para <b>${esc(o.insumo)}</b> · ${cop(o.precio_unitario)}/${esc(o.unidad)} · ${esc(o.notas_calidad||"sin notas")}</div>
+     <div class="preguntas"></div>`, "trabajando");
+}
+function barra(conf){
+  const u = st.umbral*100;
+  return `<div class="barra"><i class="${conf < st.umbral ? "baja" : ""}" style="width:${Math.round(conf*100)}%"></i><span class="umbral" style="left:${u}%" title="umbral ${st.umbral}"></span></div>`;
+}
+function botones(id, preg){
+  if (!st.real) return "<span></span>";
+  return `<span class="et" data-id="${id}" data-preg="${preg}"><button class="si" title="el juez acertó">✓</button><button class="no" title="el juez se equivocó">✗</button></span>`;
+}
+function juicioFin(ev){
+  const c = st.cards[ev.id]; if (!c) return;
+  const j = ev.juicio; st.juicios[ev.id] = j;
+  c.classList.remove("trabajando"); c.classList.add(ev.veredicto);
+  st.jev.n++; st.jev.ms += ev.ms; st.jev[ev.veredicto]++;
+  if (ev.tokens) st.jev.tok += ev.tokens.entrada + ev.tokens.salida;
+  stats();
+  const etiqueta = {apta:"apta", revision:"a revisión", descartada:"descartada"}[ev.veredicto];
+  const tok = ev.tokens && ev.tokens.llamadas ? ` · ${ev.tokens.entrada+ev.tokens.salida} tok` : "";
+  c.querySelector(".t .der").outerHTML = `<span class="badge b-${ev.veredicto}">${etiqueta}</span><span class="der">${esc(j.fuente)} · ${ev.ms} ms${tok}</span>`;
+  const cr = j.crudas || {};
+  const conf = (p, crudo) => p.toFixed(2) + (j.calibrado && crudo != null ? `<span class="sub"> (${crudo.toFixed(2)})</span>` : "");
+  const pr = cr.requiere_revision;
+  c.querySelector(".preguntas").innerHTML = `
+    <div class="preg"><span class="lbl">¿mismo producto?</span>${barra(j.conf_mismo_producto)}<span class="val">${j.mismo_producto?"sí":"no"} ${conf(j.conf_mismo_producto, cr.mismo_producto)}</span>${botones(ev.id,"mismo_producto")}</div>
+    <div class="preg"><span class="lbl">calidad</span>${barra(j.conf_calidad)}<span class="val">${esc(j.calidad)} ${conf(j.conf_calidad, cr.calidad)}</span>${botones(ev.id,"calidad")}</div>
+    <div class="preg"><span class="lbl">¿requiere revisión?</span>${pr != null ? barra(pr) : "<span></span>"}<span class="val">${j.requiere_revision?"sí":"no"}${pr != null ? " "+pr.toFixed(2) : ""}</span>${botones(ev.id,"requiere_revision")}</div>
+    <div class="preg"><span class="lbl">proveedor</span><span class="sub">por historial, en código</span><span class="val">${esc(j.confiabilidad)} ${j.conf_confiabilidad.toFixed(2)}</span><span></span></div>
+    ${j.votos && j.votos.length ? `<div class="votos">votos: ${j.votos.map(esc).join(" · ")}</div>` : ""}
+    ${ev.motivo ? `<div class="motivo">→ ${esc(ev.motivo)}</div>` : ""}`;
+}
+document.addEventListener("click", async e => {
+  const b = e.target.closest(".et button"); if (!b) return;
+  const caja = b.parentElement, id = caja.dataset.id, preg = caja.dataset.preg;
+  const j = st.juicios[id], o = st.ofertas[id];
+  const respuesta = {mismo_producto: j.mismo_producto ? "S" : "N", calidad: j.calidad, requiere_revision: j.requiere_revision ? "S" : "N"}[preg];
+  const fila = {proveedor:o.proveedor, producto:o.producto, insumo:o.insumo, pregunta:preg, respuesta,
+                prob_cruda:(j.crudas||{})[preg], acierto: b.classList.contains("si") ? 1 : 0};
+  caja.innerHTML = '<span class="hecho">…</span>';
+  try {
+    const r = await (await fetch("/etiquetar", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(fila)})).json();
+    caja.innerHTML = `<span class="hecho">${fila.acierto ? "✓" : "✗"} guardado</span>`;
+    st.etiquetas = r.etiquetas;
+  } catch { caja.innerHTML = '<span class="hecho">error</span>'; }
+});
+
+function pintarDemanda(ev){
+  const f = ev.necesidades.map(n => `<tr><td>${esc(n.insumo)}</td>
+     <td class="num ${n.dias_cobertura_actual<2?"urg":""}">${n.dias_cobertura_actual} d</td>
+     <td class="num">${n.inventario_actual}</td><td class="num">${n.cantidad_a_comprar} ${esc(n.unidad)}</td></tr>`).join("");
+  let h = `<table><tr><th>insumo</th><th class="num">cobertura</th><th class="num">stock</th><th class="num">comprar</th></tr>${f}</table>`;
+  if (ev.sobrantes.length) h += `<div class="titulito">Sobrantes</div><ul class="lista">${ev.sobrantes.map(s=>`<li>${esc(s.insumo)} (${s.dias_cobertura_actual} d)</li>`).join("")}</ul>`;
+  $("demanda").innerHTML = h;
+}
+function pintarPlan(p){
+  let h = p.pedidos.map(pe => `<div class="prov"><h3>${esc(pe.proveedor)}${pe.cumple_minimo?"":' <span class="badge b-revision">no llega al mínimo</span>'}<span>${cop(pe.total_cop)}</span></h3>
+     <table>${pe.lineas.map(l=>`<tr><td>${l.unidades_a_pedir} × ${esc(l.producto)}</td><td class="num">${l.cantidad_total} ${esc(l.unidad)}</td><td class="num">${esc(l.calidad)} · ${l.confianza}</td><td class="num">${cop(l.subtotal_cop)}</td></tr>`).join("")}
+     ${pe.envio_cop?`<tr><td class="sub">envío</td><td></td><td></td><td class="num">${cop(pe.envio_cop)}</td></tr>`:""}</table></div>`).join("");
+  if (!p.pedidos.length) h = '<div class="vacio">Ninguna oferta pasó los filtros.</div>';
+  h += `<div class="total">Total ${cop(p.total_cop)}</div>`;
+  if (p.sin_oferta.length) h += `<div class="titulito">Sin oferta apta</div><ul class="lista">${p.sin_oferta.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`;
+  if (p.para_revision.length) h += `<div class="titulito">Para revisión humana (${p.para_revision.length})</div><ul class="lista">${p.para_revision.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>`;
+  $("plan").innerHTML = h;
+}
+
+function correr(){
+  if (fuente) fuente.close();
+  reiniciar();
+  $("correr").disabled = true; $("correr").textContent = "Corriendo…";
+  const q = new URLSearchParams({mock:$("modo").value, pausa:$("pausa").value});
+  if ($("hoy").value) q.set("hoy", $("hoy").value);
+  fuente = new EventSource("/correr?" + q);
+  fuente.onmessage = m => {
+    const ev = JSON.parse(m.data);
+    ({agentes:pintarAgentes, etapa, extraccion_inicio:extraccionInicio, extraccion_fin:extraccionFin,
+      juicio_inicio:juicioInicio, juicio_fin:juicioFin}[ev.tipo] || (()=>{}))(ev);
+    if (ev.tipo==="fin" || ev.tipo==="error") terminar(ev);
+  };
+  fuente.onerror = () => terminar({tipo:"error", mensaje:"Se perdió la conexión con ui.py"});
+}
+function terminar(ev){
+  if (fuente){ fuente.close(); fuente = null; }
+  $("correr").disabled = false; $("correr").textContent = "Correr";
+  document.querySelectorAll(".punto").forEach(p=>p.classList.remove("vivo"));
+  document.querySelectorAll(".etapa.activa").forEach(e=>e.className="etapa");
+  if (ev.tipo==="error"){ $("error").textContent = ev.mensaje; $("error").style.display="block"; }
+}
+
+$("correr").onclick = correr;
+$("modo").onchange = () => { $("lblPausa").style.display = $("modo").value==="1" ? "" : "none"; cargarEstado(); };
+reiniciar(); cargarEstado();
+</script>
+</body>
+</html>

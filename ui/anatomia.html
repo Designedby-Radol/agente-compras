@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anatomía del agente</title>
+<style>
+:root{
+  --bg:#0e1013;--card:#14161a;--rule:#25282d;--ink:#c3c7cd;--txt:#e6e8eb;--mute:#8a9098;
+  --lo-t:#1e2125;--lo-f:#191b1f;--lo-s:#141619;
+  --mid-t:#272b30;--mid-f:#212428;--mid-s:#1b1e21;
+  --hi-t:#343940;--hi-f:#2b2f35;--hi-s:#24282d;
+  --lit:#f4f5f7;--lit-ink:#0e1013;--fl:#3b424b;--glass:rgba(210,220,230,.045);--halo:rgba(0,0,0,.55);
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#f2f1ed;--card:#fbfaf7;--rule:#e2e0da;--ink:#2a2c30;--txt:#18191b;--mute:#6c7076;
+  --lo-t:#e6e4de;--lo-f:#dad7d0;--lo-s:#cfccc4;
+  --mid-t:#efede8;--mid-f:#e3e0da;--mid-s:#d8d5ce;
+  --hi-t:#ffffff;--hi-f:#f3f2ee;--hi-s:#e8e6e1;
+  --lit:#131518;--lit-ink:#fbfaf7;--fl:#c6c1b6;--glass:rgba(40,50,60,.035);--halo:rgba(60,50,30,.16);
+}}
+:root[data-theme="dark"]{
+  --bg:#0e1013;--card:#14161a;--rule:#25282d;--ink:#c3c7cd;--txt:#e6e8eb;--mute:#8a9098;
+  --lo-t:#1e2125;--lo-f:#191b1f;--lo-s:#141619;--mid-t:#272b30;--mid-f:#212428;--mid-s:#1b1e21;
+  --hi-t:#343940;--hi-f:#2b2f35;--hi-s:#24282d;--lit:#f4f5f7;--lit-ink:#0e1013;--fl:#3b424b;--glass:rgba(210,220,230,.045);--halo:rgba(0,0,0,.55);
+}
+:root[data-theme="light"]{
+  --bg:#f2f1ed;--card:#fbfaf7;--rule:#e2e0da;--ink:#2a2c30;--txt:#18191b;--mute:#6c7076;
+  --lo-t:#e6e4de;--lo-f:#dad7d0;--lo-s:#cfccc4;--mid-t:#efede8;--mid-f:#e3e0da;--mid-s:#d8d5ce;
+  --hi-t:#ffffff;--hi-f:#f3f2ee;--hi-s:#e8e6e1;--lit:#131518;--lit-ink:#fbfaf7;--fl:#c6c1b6;--glass:rgba(40,50,60,.035);--halo:rgba(60,50,30,.16);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1180px;margin:0 auto;padding:28px 16px 64px}
+h1{font-size:22px;font-weight:600;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--mute);margin:0 0 20px;max-width:760px}
+.card{position:relative;background:var(--card);border:1px solid var(--rule);border-radius:14px;overflow:hidden}
+.card .hd,.card .ft{display:flex;justify-content:space-between;gap:12px;padding:12px 16px;font:12px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--mute)}
+.card .ft{border-top:1px solid var(--rule);align-items:flex-end}
+.card .hd b{color:var(--txt);font-weight:500}
+#ro{color:var(--txt);text-align:right;min-height:2.8em;white-space:pre-line}
+svg.fig{display:block;width:100%;height:auto;touch-action:manipulation}
+.fig path,.fig ellipse,.fig circle,.fig polygon{stroke:var(--ink);stroke-width:.55;stroke-linejoin:round;stroke-linecap:round}
+.fig .n{fill:none}
+.lo.t{fill:var(--lo-t)}.lo.f{fill:var(--lo-f)}.lo.s{fill:var(--lo-s)}
+.mid.t{fill:var(--mid-t)}.mid.f{fill:var(--mid-f)}.mid.s{fill:var(--mid-s)}
+.hi.t{fill:var(--hi-t)}.hi.f{fill:var(--hi-f)}.hi.s{fill:var(--hi-s)}
+.fig .lit{fill:var(--lit)}.fig .lit-ln{stroke:var(--lit);stroke-width:1.1;fill:none}
+.fig .on-lit{stroke:var(--lit-ink)}
+.fig .fl{fill:var(--fl)}.fig .gl{fill:var(--glass)}
+.fig .fa{fill:none;opacity:.38}.fig .fa2{fill:none;opacity:.6}
+.fig .dot{fill:var(--ink);stroke:none}
+.fig .halo{fill:var(--halo);stroke:none}
+.fig text{fill:var(--ink);stroke:none;font:600 5px ui-monospace,Consolas,monospace;letter-spacing:.04em}
+.fig .ring{fill:var(--lo-s);stroke:var(--lit);stroke-width:.8}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px 18px;margin:18px 0 0;padding:0;list-style:none}
+.legend li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--mute)}
+.legend b{color:var(--txt);font-weight:600}
+.legend code{font:12px ui-monospace,Consolas,monospace;color:var(--txt)}
+.k{flex:none;width:22px;height:22px;border-radius:6px;border:1px solid var(--rule);display:grid;place-items:center;font:600 11px ui-monospace,monospace;color:var(--txt);background:var(--bg)}
+.cap{color:var(--mute);font-size:13.5px;max-width:880px;margin:18px 0 0}
+.cap b{color:var(--txt)}
+.ctl{display:flex;gap:8px}
+.ctl button{font:12px ui-monospace,monospace;color:var(--txt);background:transparent;border:1px solid var(--rule);border-radius:6px;padding:2px 8px;cursor:pointer}
+.ctl button:hover{border-color:var(--mute)}
+main,.card,.ft>span{min-width:0}.sub,.legend,.cap{overflow-wrap:anywhere}
+@media (max-width:620px){.card .hd span:last-child{display:none}.card .ft{flex-direction:column-reverse;align-items:stretch}#ro{font-size:11px;text-align:left}}
+</style>
+</head>
+<body>
+<main>
+<h1>Anatomía del agente de compras</h1>
+<p class="sub">Todo el pipeline como un banco de taller. Cada oferta real de <code>salida/evaluaciones.json</code> sale del lector como una ficha, el juez la vota y la ficha termina en la caja que le corresponde. El dueño aprueba al final.</p>
+
+<div class="card" id="card">
+  <div class="hd"><span><b>Fig 1</b></span><span>demanda → lectura → juicio → optimización → reporte</span></div>
+  <svg class="fig" id="fig" role="img" aria-label="Máquina isométrica que representa el pipeline del agente de compras"></svg>
+  <div class="ft">
+    <span>pasa el cursor para pausar · ← → cambia de oferta<br><span class="ctl"><button id="bp" type="button">pausa</button><button id="bt" type="button">tema</button></span></span>
+    <span id="ro" aria-live="polite"></span>
+  </div>
+</div>
+
+<ul class="legend">
+  <li><span class="k">1</span><span><b>Demanda</b> · <code>demanda.py</code><br>Un tubo por insumo. El líquido es el inventario y el tope es la demanda de 7 días + 15 %. Lo que falta para llenarlo es lo que hay que comprar. Es código puro.</span></li>
+  <li><span class="k">2</span><span><b>Lector</b> · <code>busqueda.py</code><br>Las cotizaciones crudas (WhatsApp, catálogo, PDF) entran por los rodillos y Grok devuelve una ficha normalizada por producto: kg, L o unidad, en COP.</span></li>
+  <li><span class="k">3</span><span><b>Juez</b> · <code>juicio.py</code><br>La sonda baja y pide 5 votos en una sola llamada («S A N»). Cada lámpara es un voto: encendida si coincide con la mayoría, con anillo si discrepa. La aguja marca la confianza contra el umbral de 0.70.</span></li>
+  <li><span class="k">4</span><span><b>Optimizador</b> · <code>optimizador.py</code><br>Los pistones apartan las fichas que van a revisión (adelante) y las descartadas (atrás). La rampa reparte las aptas: más barata por insumo, contando bultos enteros, envío y pedido mínimo.</span></li>
+  <li><span class="k">5</span><span><b>Reporte</b> · <code>reporte.py</code><br>La impresora saca el mensaje de WhatsApp con el plan. No se compra nada hasta que el dueño pulsa <em>sí</em>.</span></li>
+  <li><span class="k">H</span><span><b>Historial</b> · <code>historial_proveedores.csv</code><br>El fichero de adelante. La confiabilidad del proveedor se calcula en código, sin tokens, y no se le pregunta al modelo.</span></li>
+</ul>
+<p class="cap">Datos de la corrida del 6 de octubre de 2026. Tres ofertas de <b>Carnes La Hacienda</b> van a revisión porque su historial es malo (0.75), y la pechuga <b>con hueso</b> se descarta por no ser el mismo producto. <b>Mayorista Santander</b> tenía el arroz más barato por kg, pero su pedido no llegaba al mínimo de $250.000 y el optimizador lo reubicó, así que su caja queda vacía. La zanahoria de Plaza Central gana a la de Mayorista aunque esta cueste menos por kg, porque Mayorista solo la vende en bulto de 20 kg y hacen falta 5.2 kg. Total: <b>$1.949.600</b> en 2 pedidos.</p>
+</main>
+
+<script>
+(()=>{
+// ---------------------------------------------------------------- datos reales
+const NEC=[["aguacate hass",4,19.48],["carne molida de res",8,36.52],["pechuga de pollo",10,43.8],["platano maduro",6,24.35],["queso parmesano",.5,1.94],["zanahoria",3,7.15],["lechuga romana",5,11.64],["huevo",180,243.5],["frijol cargamanto",25,29.22],["arroz blanco",60,54.23]];
+const PROV=["Carnes La Hacienda","Distribuidora El Campo","Mayorista Santander","Plaza Central"];
+// [prov, producto, insumo, $/u, votos, conf, veredicto, destino]  destino: rev | desc | campo | plaza | no
+const OF=[
+ [0,"Carne molida corriente","carne molida de res",10800,"SBS SBN SBN SBN SBN",.917,"revisión: historial malo (0.75)","rev"],
+ [0,"Carne molida especial","carne molida de res",12900,"SAS SAN SAN SAN SAS",.917,"revisión: historial malo (0.75)","rev"],
+ [0,"Pechuga con hueso","pechuga de pollo",11200,"NBS NBS NBS NBS NBS",.917,"descartada: no es el mismo producto","desc"],
+ [0,"Pechuga sin hueso","pechuga de pollo",14800,"SAN SAN SAN SAN SAN",.917,"revisión: historial malo (0.75)","rev"],
+ [1,"Carne molida especial 90/10","carne molida de res",12400,"SAN SAN SAN SAN SAN",.917,"apta → elegida","campo"],
+ [1,"Pechuga de pollo sin hueso","pechuga de pollo",13800,"SAN SAN SAN SAN SAN",.917,"apta → elegida","campo"],
+ [1,"Arroz blanco Diana","arroz blanco",3920,"SAN SAN SAN SAN SAN",.917,"apta → elegida (reubicada desde Mayorista)","campo"],
+ [1,"Frijol cargamanto rojo","frijol cargamanto",8960,"SAN SBN SAN SAN SAN",.75,"apta → elegida","campo"],
+ [1,"Huevo AA","huevo",550,"SAN SAN SAN SAN SAN",.917,"apta → elegida","campo"],
+ [1,"Parmesano rallado Colanta","queso parmesano",48000,"SAN SAN SAN SAN SAN",.917,"apta → elegida","campo"],
+ [2,"Arroz Roa bulto 25 kg","arroz blanco",3780,"SAN SAN SAN SAN SAN",.917,"apta → no elegida: pedido < mínimo $250.000","no"],
+ [2,"Arroz Diana bulto 25 kg","arroz blanco",3880,"SAN SAN SAN SAN SAN",.917,"apta → no elegida: pedido < mínimo","no"],
+ [2,"Frijol cargamanto bulto 25 kg","frijol cargamanto",8600,"SBN SBN SBN SBN SBN",.917,"apta → no elegida: bulto de 25 kg sale más caro","no"],
+ [2,"Huevo AA cubeta x 30","huevo",530,"SAN SAN SAN SAN SAN",.917,"apta → no elegida: pedido < mínimo","no"],
+ [2,"Parmesano 1 kg marca propia","queso parmesano",39000,"SBN SBN SBN SBN SBN",.917,"apta → no elegida: 1 kg cuando faltan 1.7","no"],
+ [2,"Zanahoria bulto 20 kg","zanahoria",2400,"SBN SBN SBN SAN SBN",.75,"apta → no elegida: bulto de 20 kg","no"],
+ [3,"Aguacate hass","aguacate hass",15000,"SAN SAN SAN SAN SAN",.917,"apta → elegida","plaza"],
+ [3,"Lechuga romana","lechuga romana",4200,"SAN SAN SAN SAN SAN",.917,"apta → elegida","plaza"],
+ [3,"Zanahoria","zanahoria",2800,"SAN SAN SBN SAN SAN",.75,"apta → elegida","plaza"],
+ [3,"Plátano maduro","platano maduro",5000,"SAN SAN SAN SAN SAN",.917,"apta → elegida","plaza"],
+];
+const UMBRAL=.70, TOTAL="$1.949.600";
+const fmt=n=>"$"+Math.round(n).toLocaleString("es-CO");
+
+// ---------------------------------------------------------------- cámara
+const AZ=28*Math.PI/180, EL=30*Math.PI/180;
+const ca=Math.cos(AZ),sa=Math.sin(AZ),ce=Math.cos(EL),se=Math.sin(EL);
+const V=[sa*ce,ca*ce,se];                      // hacia el observador
+const P=(x,y,z)=>[x*ca-y*sa,(x*sa+y*ca)*se-z*ce];
+const D=(x,y,z)=>(x*sa+y*ca)*ce+z*se;           // profundidad: mayor = más cerca
+const r2=v=>v.toFixed(2);
+const pt=p=>{const q=P(p[0],p[1],p[2]);return r2(q[0])+","+r2(q[1]);};
+const poly=(pts,c)=>`<path class="${c}" d="M${pts.map(pt).join("L")}Z"/>`;
+const line=(a,b,c="")=>`<path class="n ${c}" d="M${pt(a)}L${pt(b)}"/>`;
+const pline=(pts,c="")=>`<path class="n ${c}" d="M${pts.map(pt).join("L")}"/>`;
+const dot=(p,r=.5)=>{const q=P(...p);return `<circle class="dot" cx="${r2(q[0])}" cy="${r2(q[1])}" r="${r}"/>`;};
+const dotv=(x,y,z,r)=>dot([x,y,z],r);
+const add3=(a,b,s=1)=>[a[0]+b[0]*s,a[1]+b[1]*s,a[2]+b[2]*s];
+const dotp=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const norm=a=>{const l=Math.hypot(...a);return a.map(v=>v/l);};
+
+// caja alineada a los ejes: arriba, cara +y (frente) y cara +x (lado)
+function box(x,y,z,w,d,h,tone,o={}){
+  const X=x+w,Y=y+d,Z=z+h;
+  let s=poly([[x,Y,z],[X,Y,z],[X,Y,Z],[x,Y,Z]],tone+" f")
+       +poly([[X,y,z],[X,Y,z],[X,Y,Z],[X,y,Z]],tone+" s")
+       +poly([[x,y,Z],[X,y,Z],[X,Y,Z],[x,Y,Z]],tone+" t");
+  if(o.bevel){const b=o.bevel;s+=poly([[x+b,y+b,Z],[X-b,y+b,Z],[X-b,Y-b,Z],[x+b,Y-b,Z]],"n fa");}
+  return s;
+}
+// prisma con planta convexa cualquiera (en sentido antihorario visto desde arriba)
+function prism(pl,z,h,tone){
+  let s="";const n=pl.length;
+  const sides=[];
+  for(let i=0;i<n;i++){const a=pl[i],b=pl[(i+1)%n];const nx=b[1]-a[1],ny=-(b[0]-a[0]);
+    const vis=nx*V[0]+ny*V[1];if(vis>0)sides.push([a,b,vis/Math.hypot(nx,ny)]);}
+  for(const [a,b,v] of sides){s+=poly([[a[0],a[1],z],[b[0],b[1],z],[b[0],b[1],z+h],[a[0],a[1],z+h]],tone+(v>.62?" f":" s"));}
+  return s+poly(pl.map(p=>[p[0],p[1],z+h]),tone+" t");
+}
+function hull(ps){
+  ps=ps.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+  const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]);
+  const lo=[],up=[];
+  for(const p of ps){while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0)lo.pop();lo.push(p);}
+  for(const p of ps.reverse()){while(up.length>1&&cr(up[up.length-2],up[up.length-1],p)<=0)up.pop();up.push(p);}
+  return lo.slice(0,-1).concat(up.slice(0,-1));
+}
+const basis=u=>{u=norm(u);const t=Math.abs(u[2])<.9?[0,0,1]:[1,0,0];const v=norm(cross(u,t));return [u,v,cross(u,v)];};
+const ring=(c,v,w,r,n=32)=>Array.from({length:n},(_,i)=>{const a=i/n*2*Math.PI;return add3(add3(c,v,r*Math.cos(a)),w,r*Math.sin(a));});
+// cuerpo redondo a lo largo de cualquier eje: silueta con degradado + tapa visible
+function round(p0,axis,len,r,tone,o={}){
+  const [u,v,w]=basis(axis);const p1=add3(p0,u,len);
+  const A=ring(p0,v,w,r),B=ring(p1,v,w,r);
+  const h=hull(A.concat(B).map(p=>P(...p)));
+  let s=`<path class="${o.glass?"gl":""}" fill="${o.glass?"":`url(#g-${tone})`}" d="M${h.map(q=>r2(q[0])+","+r2(q[1])).join("L")}Z"/>`;
+  const capFront=dotp(u,V)>0;const cap=capFront?B:A;const capN=capFront?u:u.map(x=>-x);
+  if(Math.abs(dotp(capN,V))>.02){
+    const cc=Math.abs(capN[2])>.7?"t":"f";
+    s+=poly(cap,(o.glass?"gl":tone+" "+cc));
+    if(o.capRing)s+=poly(ring(capFront?p1:p0,v,w,r*o.capRing),"n fa");
+  }
+  return s;
+}
+// nervios sobre una superficie redonda (moleteado, rodillos que giran)
+function ribs(p0,axis,len,r,count,phase=0,cls="fa2"){
+  const [u,v,w]=basis(axis);let s="";
+  for(let i=0;i<count;i++){const a=phase+i/count*2*Math.PI;const nn=add3(v.map(x=>x*Math.cos(a)),w,Math.sin(a));
+    const vis=dotp(nn,V);if(vis<.08)continue;
+    const a0=add3(p0,nn,r),a1=add3(a0,u,len);
+    s+=`<path class="n" style="opacity:${Math.min(.75,(vis-.08)*2.2).toFixed(2)}" d="M${pt(a0)}L${pt(a1)}"/>`;}
+  return s;
+}
+// texto grabado en un plano y=cte (cara de frente)
+function engrave(x,y,z,txt,size=5){const o=P(x,y,z);
+  return `<text transform="matrix(${r2(ca)},${r2(sa*se)},0,${r2(ce)},${r2(o[0])},${r2(o[1])})" style="font-size:${size}px">${txt}</text>`;}
+// placa con número grabado en la cara +y
+function plate(x,y,z,w,h,txt){return box(x,y,z,w,.8,h,"hi")+engrave(x+w/2-1.6,y+.8,z+h/2-1.7,txt)+dotv(x+1.2,y+.8,z+h-1.2,.35)+dotv(x+w-1.2,y+.8,z+1.2,.35);}
+
+// ---------------------------------------------------------------- escena
+const items=[];          // {k, s}
+const dyn=[];            // {k(), el, draw()}
+const add=(k,s)=>items.push({k,s});
+const kOf=(x,y,z)=>D(x,y,z);
+
+// banco
+const BW=566,BD=182,BH=12;
+add(-1e4,(()=>{const c=[[ -14,-10,0],[BW+14,-10,0],[BW+14,BD+14,0],[-14,BD+14,0]].map(p=>P(...p));
+  return `<path class="halo" d="M${c.map(q=>r2(q[0])+","+r2(q[1])).join("L")}Z" filter="url(#blur)"/>`;})());
+for(const [fx,fy] of [[14,14],[BW-14,14],[14,BD-14],[BW-14,BD-14]])
+  add(kOf(fx,fy,-4)-2000,round([fx,fy,-9],[0,0,1],9,7,"lo"));
+add(-1500,box(0,0,0,BW,BD,BH,"lo",{bevel:1.4})
+  +poly([[6,6,BH],[BW-6,6,BH],[BW-6,BD-6,BH],[6,BD-6,BH]],"n fa")
+  +[[3.5,3.5],[BW-3.5,3.5],[3.5,BD-3.5],[BW-3.5,BD-3.5]].map(([x,y])=>dotv(x,y,BH,.55)+poly(ring([x,y,BH],[1,0,0],[0,1,0],1.3,14),"n fa")).join(""));
+// regla al borde del frente
+add(-1400,(()=>{let s=box(150,BD-9,BH,400,6,.6,"mid");
+  for(let i=0;i<=80;i++){const x=150+i*5,maj=i%5===0;s+=line([x,BD-3,BH+.6],[x,BD-3-(maj?3.6:2),BH+.6],maj?"fa2":"fa");}
+  return s+dotv(152,BD-6,BH+.6,.4)+dotv(548,BD-6,BH+.6,.4);})());
+// ranura en la cara frontal del banco
+add(-1300,pline([[8,BD,BH*.45],[BW-8,BD,BH*.45]],"fa"));
+
+// ---- 1 · rack de demanda: un tubo por insumo
+const RX=18,RY=20;
+add(kOf(70,RY,40),box(RX,RY-6,BH,112,5,88,"mid",{bevel:.6})
+  +(()=>{let s="";for(let i=0;i<=16;i++){const z=BH+14+i*4.1,maj=i%4===0;s+=line([RX+2,RY-1,z],[RX+2+(maj?5:3),RY-1,z],maj?"fa2":"fa");}
+    return s+dotv(RX+3,RY-1,BH+86,.45)+dotv(RX+109,RY-1,BH+86,.45);})());
+add(kOf(70,RY+20,BH+4),box(RX,RY,BH,112,44,7,"mid",{bevel:.8})+plate(RX+4,RY+44,BH+1.2,12,5,"1"));
+const TUBE=[];
+NEC.forEach(([ins,inv,dem],i)=>{
+  const row=i<5?0:1,col=i%5;const cx=RX+14+col*21,cy=RY+12+row*20,z0=BH+7,H=60;
+  const lvl=Math.min(1,inv/(dem*1.15));
+  TUBE.push({ins,cx,cy,z0,H,lvl});
+  const k=kOf(cx,cy,z0+30);
+  add(k-.02,round([cx,cy,z0],[0,0,1],3,8,"hi"));
+  const el=document.createElementNS("http://www.w3.org/2000/svg","g");
+  dyn.push({k:()=>k,el,draw:()=>{}});
+  TUBE[i].el=el;
+  add(k+.02,round([cx,cy,z0+H],[0,0,1],3.2,8,"hi",{capRing:.55})+dotv(cx,cy,z0+H+3.2,.45));
+});
+function drawTube(t,active){
+  const fh=Math.max(.6,t.lvl*(t.H-3));
+  t.el.innerHTML=round([t.cx,t.cy,t.z0+3],[0,0,1],fh,5.6,active?"hi":"lo")
+    +round([t.cx,t.cy,t.z0+3],[0,0,1],t.H-3,7,"lo",{glass:true})
+    +poly(ring([t.cx,t.cy,t.z0+t.H-1],[1,0,0],[0,1,0],7,32),"n fa")   // marca del tope = demanda +15 %
+    +pline(ring([t.cx,t.cy,t.z0+3+fh],[1,0,0],[0,1,0],7,32).filter((p,j)=>j>=6&&j<=22),"fa")
+    +(active?pline([[t.cx+5.2,t.cy+5.2,t.z0+3+fh],[t.cx+5.2,t.cy+5.2,t.z0+t.H-1]],"lit-ln"):"");
+}
+
+// ---- H · fichero del historial
+add(kOf(52,140,BH+8),box(26,124,BH,52,34,14,"mid",{bevel:.8})
+  +poly([[29,127,BH+14],[75,127,BH+14],[75,155,BH+14],[29,155,BH+14]],"lo t")
+  +plate(46,158,BH+4,12,5,"H"));
+for(let i=0;i<5;i++){const y=130+i*5.2;add(kOf(52,y,BH+18)+.1,box(30,y,BH+12,44,1.2,10-i*.6,"hi")
+  +line([33,y+1.2,BH+19-i*.6],[46,y+1.2,BH+19-i*.6],"fa")+box(36+i*7,y,BH+22-i*.6,6,1.2,2.4,"hi"));}
+
+// ---- 2 · lector (bandeja de cotizaciones + rodillos)
+add(kOf(90,92,BH+2),box(50,74,BH,92,36,4,"mid",{bevel:.6})
+  +box(50,74,BH+4,92,2,3,"mid")+box(140,74,BH+4,2,36,3,"mid"));
+const SLIPS=[];
+for(let i=0;i<4;i++){const el=document.createElementNS("http://www.w3.org/2000/svg","g");
+  dyn.push({k:()=>kOf(100,92,BH+5+i),el,draw:()=>{}});SLIPS.push(el);}
+function drawSlips(cur,feed){
+  SLIPS.forEach((el,i)=>{const done=i<cur,act=i===cur;
+    if(done){el.innerHTML="";return;}
+    const z=BH+4+(3-i)*1.3,dx=act?feed*30:0,x=74+(3-i)*2.2+dx,y=78+(i%2)*1.5;
+    el.innerHTML=box(x,y,z,44,28,1,act?"hi":"mid")
+      +[0,1,2,3].map(j=>line([x+5,y+6+j*5,z+1],[x+(j===3?20:34),y+6+j*5,z+1],"fa")).join("")
+      +dotv(x+40,y+4,z+1,.5);});
+}
+// mejillas y rodillos
+add(kOf(170,66,BH+28),box(152,62,BH,34,8,56,"mid",{bevel:.6}));
+const ROLL=document.createElementNS("http://www.w3.org/2000/svg","g");
+dyn.push({k:()=>kOf(170,92,48),el:ROLL,draw:()=>{}});
+function drawRollers(ph){
+  ROLL.innerHTML=round([169,70,49],[0,1,0],42,7,"hi")+ribs([169,70,49],[0,1,0],42,7,14,-ph)
+    +round([169,70,32],[0,1,0],42,6,"mid")+ribs([169,70,32],[0,1,0],42,6,12,ph);
+}
+add(kOf(170,118,BH+28),box(152,114,BH,34,8,56,"mid",{bevel:.6})
+  +dotv(158,122,BH+48,.5)+dotv(180,122,BH+48,.5)+dotv(158,122,BH+8,.5)+dotv(180,122,BH+8,.5));
+add(kOf(169,123,49)+.5,round([169,122,49],[0,1,0],6,6,"hi",{capRing:.4})+ribs([169,122,49],[0,1,0],6,6,22,0));
+add(kOf(169,92,BH+60),box(150,60,BH+56,38,64,8,"hi",{bevel:1})+plate(161,124,BH+57.4,12,5,"2")
+  +line([152,62,BH+64],[186,62,BH+64],"fa"));
+
+// ---- cinta transportadora
+const BX0=190,BX1=474,Y0=72,Y1=112,BZ=38;
+for(const x of [214,334,452]){add(kOf(x,67,20),box(x-3,64,BH,6,6,14,"lo"));}
+add(kOf(330,69,30),box(BX0,64,BH+14,BX1-BX0,8,10,"mid")+[200,260,320,380,440].map(x=>dotv(x,64,BH+19,.4)).join(""));
+const BELT=document.createElementNS("http://www.w3.org/2000/svg","g");
+const BELT_K=kOf(330,92,BZ-2);
+dyn.push({k:()=>BELT_K,el:BELT,draw:()=>{}});
+function drawBelt(off){
+  let s=box(BX0,Y0,BZ-4,BX1-BX0,Y1-Y0,4,"lo");
+  for(let x=BX0+((off%12)+12)%12;x<BX1;x+=12)s+=line([x,Y0+1,BZ],[x,Y1-1,BZ],"fa");
+  s+=round([BX1,Y0,BZ-2],[0,1,0],Y1-Y0,2.2,"mid");
+  BELT.innerHTML=s;
+}
+for(const x of [214,334,452]){add(kOf(x,117,20),box(x-3,114,BH,6,6,14,"lo"));}
+const FRONT_RAIL_K=kOf(330,116,30), BACK_RAIL_K=kOf(330,69,30);
+add(FRONT_RAIL_K,box(BX0,112,BH+14,BX1-BX0,8,10,"mid")
+  +[200,260,320,380,440].map(x=>dotv(x,120,BH+19,.42)+poly(ring([x,120,BH+19],[1,0,0],[0,0,1],1.2,12),"n fa")).join("")
+  +line([BX0+2,120,BH+16],[BX1-2,120,BH+16],"fa"));
+
+// ---- 3 · el juez (pórtico, sonda, lámparas, reloj)
+const JX=298;
+add(kOf(JX,61,60),box(JX-4,56,BH,8,8,108,"mid",{bevel:.6})+box(JX-8,52,BH,16,16,4,"mid",{bevel:.6})
+  +dotv(JX-6,54,BH+4,.45)+dotv(JX+6,66,BH+4,.45));
+add(kOf(JX,123,60),box(JX-4,120,BH,8,8,108,"mid",{bevel:.6})+box(JX-8,116,BH,16,16,4,"mid",{bevel:.6})
+  +dotv(JX-6,130,BH+4,.45)+dotv(JX+6,118,BH+4,.45)
+  +round([JX,128,90],[0,1,0],5,5,"hi",{capRing:.45})+ribs([JX,128,90],[0,1,0],5,5,20,0));
+const CB_K=kOf(JX,92,124);
+add(CB_K,box(JX-8,52,BH+108,16,80,10,"hi",{bevel:.8})
+  +plate(JX-6,132,BH+110,12,5,"3")+round([JX,92,BH+118],[0,0,1],5,4.2,"mid",{capRing:.45}));
+const PROBE=document.createElementNS("http://www.w3.org/2000/svg","g");
+dyn.push({k:()=>CB_K+.3,el:PROBE,draw:()=>{}});
+function coil(z0,z1,turns,r){const back=[],front=[];let cur=null,curF=null;
+  const N=turns*24;for(let i=0;i<=N;i++){const a=i/24*2*Math.PI,z=z0+(z1-z0)*i/N;
+    const p=[JX+r*Math.cos(a),92+r*Math.sin(a),z];const f=Math.cos(a)*V[0]+Math.sin(a)*V[1]>0;
+    if(f!==curF){cur=[];(f?front:back).push(cur);if(cur.length===0&&i>0){}curF=f;}
+    cur.push(p);}
+  return [back,front];}
+function drawProbe(zf){            // zf = altura del pie de la sonda
+  const top=BH+108,collar=zf+14;
+  const [bk,fr]=coil(collar+2,top,6,4.3);
+  PROBE.innerHTML=bk.map(c=>pline(c,"fa2")).join("")
+    +round([JX,92,collar+2],[0,0,1],top-collar-2,1.8,"hi")
+    +round([JX,92,collar],[0,0,1],2,5,"hi")
+    +round([JX,92,zf+1.6],[0,0,1],collar-zf-1.6,1.8,"hi")
+    +round([JX,92,zf],[0,0,1],1.6,4,"mid",{capRing:.5})
+    +fr.map(c=>pline(c,"")).join("");
+}
+const LAMPS=[];
+for(let i=0;i<5;i++){const el=document.createElementNS("http://www.w3.org/2000/svg","g");const y=70+i*11;
+  dyn.push({k:()=>CB_K+.2+i*.01,el,draw:()=>{}});LAMPS.push({el,y});}
+function drawLamps(state){        // state[i]: 0 apagada, 1 coincide, 2 discrepa
+  LAMPS.forEach((l,i)=>{const p0=[JX+8,l.y,BH+113];const st=state[i];
+    let s=round(p0,[1,0,0],1.4,3.6,"mid")+round(add3(p0,[1,0,0],1.4),[1,0,0],1.6,2.6,"lo");
+    const c=add3(p0,[1,0,0],3);const rg=ring(c,[0,1,0],[0,0,1],2.6,24);
+    if(st===1)s+=poly(rg,"lit on-lit");else if(st===2)s+=poly(rg,"ring");
+    l.el.innerHTML=s;});
+}
+// reloj comparador sobre el pórtico, cara hacia +y
+const DC=[JX,112,BH+142],DR=16;
+add(CB_K+.6,box(JX-3,110,BH+118,6,5,10,"mid")
+  +round([JX,106,DC[2]],[0,1,0],6,DR+1.8,"mid")
+  +round([JX,DC[1],DC[2]+DR+1.6],[0,0,1],4,3,"hi")+ribs([JX,DC[1],DC[2]+DR+1.6],[0,0,1],4,3,14,0)
+  +round([JX,DC[1],DC[2]+DR+5.6],[0,0,1],2,4.2,"hi",{capRing:.5}));
+const ang=v=>(210-240*v)*Math.PI/180;
+const onDial=(a,r,dy=0)=>[DC[0]+r*Math.cos(a),DC[1]+dy,DC[2]+r*Math.sin(a)];
+add(CB_K+.62,(()=>{let s=poly(ring([JX,DC[1],DC[2]],[1,0,0],[0,0,1],DR,48),"hi f")
+  +poly(ring([JX,DC[1],DC[2]],[1,0,0],[0,0,1],DR-2.4,48),"n fa");
+  for(let i=0;i<=20;i++){const v=i/20,maj=i%5===0;s+=line(onDial(ang(v),DR-2.4),onDial(ang(v),DR-(maj?6.4:4.4)),maj?"fa2":"fa");}
+  const t=ang(UMBRAL);s+=line(onDial(t,DR-1),onDial(t,DR-7.4),"lit-ln");
+  s+=poly([onDial(t,DR-.4),onDial(t-.09,DR+2.2),onDial(t+.09,DR+2.2)],"lit on-lit");
+  // arco de "zona apta" entre el umbral y 1
+  const arc=[];for(let i=0;i<=24;i++){arc.push(onDial(ang(UMBRAL+(1-UMBRAL)*i/24),DR-8.6));}
+  s+=pline(arc,"fa2");
+  return s;})());
+const NEEDLE=document.createElementNS("http://www.w3.org/2000/svg","g");
+dyn.push({k:()=>CB_K+.64,el:NEEDLE,draw:()=>{}});
+function drawNeedle(v){const a=ang(v);
+  NEEDLE.innerHTML=`<path class="lit-ln" style="stroke-width:1.2" d="M${pt(onDial(a+Math.PI,4))}L${pt(onDial(a,DR-4))}"/>`
+    +poly(ring([JX,DC[1],DC[2]],[1,0,0],[0,0,1],1.7,16),"lit on-lit");}
+
+// ---- 4 · pistones (revisión adelante, descarte atrás) y cajas
+const RXp=340,DXp=398;
+// pistón trasero (empuja hacia +y → bandeja de revisión)
+add(kOf(RXp,40,22),box(RXp-10,26,BH,20,30,20,"mid",{bevel:.6})+plate(RXp-6,56,BH+6,12,5,"4"));
+add(kOf(RXp,40,40),round([RXp,28,BH+26],[0,1,0],28,6,"hi",{capRing:.5})+ribs([RXp,28,BH+26],[0,1,0],28,6,8,.3,"fa"));
+// pistón delantero (empuja hacia -y → caja de descarte)
+add(kOf(DXp,145,22),box(DXp-10,128,BH,20,30,20,"mid",{bevel:.6}));
+add(kOf(DXp,145,40),round([DXp,156,BH+26],[0,-1,0],28,6,"hi",{capRing:.5})+ribs([DXp,156,BH+26],[0,-1,0],28,6,8,.3,"fa"));
+const PUSH_R=document.createElementNS("http://www.w3.org/2000/svg","g"),PUSH_D=document.createElementNS("http://www.w3.org/2000/svg","g");
+let pushR=0,pushD=0;
+dyn.push({k:()=>card.on&&card.dest==="rev"&&pushR>1?cardKey()-.002:BACK_RAIL_K+.01,el:PUSH_R,draw:()=>{}});
+dyn.push({k:()=>Math.max(kOf(DXp,126-pushD,42),FRONT_RAIL_K+.01),el:PUSH_D,draw:()=>{}});
+function drawPushers(){
+  const yr=56+pushR;
+  PUSH_R.innerHTML=round([RXp,56,BH+26],[0,1,0],yr-56,2,"hi")+box(RXp-13,yr,BZ+.5,26,3,10,"hi",{bevel:.5});
+  const yd=128-pushD;
+  PUSH_D.innerHTML=round([DXp,128,BH+26],[0,-1,0],128-yd,2,"hi")+box(DXp-13,yd-3,BZ+.5,26,3,10,"hi",{bevel:.5});
+}
+// contenedores abiertos: fondo + paredes de atrás, contenido, paredes de adelante
+const BOX={};
+function bin(name,x,y,w,d,h,tone,slats){
+  const k=kOf(x+w/2,y+d/2,BH+h/2);
+  add(k-1,box(x,y,BH,w,d,1.5,tone)+box(x,y,BH,w,1.5,h,tone)+box(x,y,BH,1.5,d,h,tone));
+  const el=document.createElementNS("http://www.w3.org/2000/svg","g");
+  dyn.push({k:()=>k,el,draw:()=>{}});
+  let front=box(x+w-1.5,y,BH,1.5,d,h,tone)+box(x,y+d-1.5,BH,w,1.5,h,tone);
+  if(slats)for(let j=1;j<4;j++){const z=BH+j*h/4;front+=pline([[x,y+d,z],[x+w,y+d,z],[x+w,y,z]],"fa");}
+  front+=dotv(x+2,y+d,BH+h-2,.4)+dotv(x+w-2,y+d,BH+h-2,.4);
+  add(k+1,front);
+  BOX[name]={x,y,w,d,h,el,n:0,k};
+}
+bin("rev",RXp-20,128,40,38,12,"mid",false);
+bin("desc",DXp-18,16,36,40,24,"lo",true);
+// rampa giratoria al final de la cinta
+const PIV=[486,92];
+add(kOf(PIV[0],PIV[1],20),round([PIV[0],PIV[1],BH],[0,0,1],16,4.5,"mid")+round([PIV[0],PIV[1],BH],[0,0,1],2,8,"mid",{capRing:.5}));
+const CH=[[-40,"no"],[0,"plaza"],[40,"campo"]];
+CH.forEach(([deg,name])=>{const a=deg*Math.PI/180,cx=PIV[0]+48*Math.cos(a),cy=PIV[1]+48*Math.sin(a);
+  bin(name,cx-14,cy-14,28,28,16,"mid",true);});
+const CHUTE=document.createElementNS("http://www.w3.org/2000/svg","g");let chuteA=0;
+dyn.push({k:()=>kOf(PIV[0]+12*Math.cos(chuteA),PIV[1]+12*Math.sin(chuteA),30),el:CHUTE,draw:()=>{}});
+function drawChute(){const c=Math.cos(chuteA),s=Math.sin(chuteA);
+  const R=(u,v)=>[PIV[0]+u*c-v*s,PIV[1]+u*s+v*c];
+  CHUTE.innerHTML=prism([R(-6,-13),R(32,-13),R(32,13),R(-6,13)],BH+16,2,"hi")
+    +prism([R(-6,-13),R(32,-13),R(32,-11),R(-6,-11)],BH+18,3,"hi")
+    +prism([R(-6,11),R(32,11),R(32,13),R(-6,13)],BH+18,3,"hi")
+    +dotv(PIV[0],PIV[1],BH+18,.6);}
+
+// ---- 5 · impresora del reporte + botón de aprobación
+const PX=420,PY=130;
+add(kOf(PX+26,PY+18,BH+16),box(PX,PY,BH,52,36,30,"mid",{bevel:1.2})
+  +poly([[PX+8,PY+12,BH+30],[PX+40,PY+12,BH+30],[PX+40,PY+16,BH+30],[PX+8,PY+16,BH+30]],"lo t")
+  +plate(PX+4,PY+36,BH+20,12,5,"5")
+  +[0,1,2].map(j=>line([PX+20,PY+36,BH+10+j*3],[PX+46,PY+36,BH+10+j*3],"fa")).join("")
+  +dotv(PX+46,PY+28,BH+30,.7)+dotv(PX+42,PY+28,BH+30,.7));
+const TICKET=document.createElementNS("http://www.w3.org/2000/svg","g"),BTN=document.createElementNS("http://www.w3.org/2000/svg","g");
+dyn.push({k:()=>kOf(PX+24,PY+14,BH+40),el:TICKET,draw:()=>{}});
+dyn.push({k:()=>kOf(PX+26,PY+28,BH+33),el:BTN,draw:()=>{}});
+function drawTicket(h){
+  if(h<.5){TICKET.innerHTML="";return;}
+  const y=PY+14,z0=BH+30,x0=PX+10,x1=PX+38;
+  let s=poly([[x0,y,z0],[x1,y,z0],[x1,y-Math.max(0,h-40)*.25,z0+h],[x0,y-Math.max(0,h-40)*.25,z0+h]],"hi f");
+  for(let j=0;j<Math.floor((h-4)/5);j++){const z=z0+h-4-j*5,yy=y-Math.max(0,z-z0-40)*.25;s+=line([x0+3,yy,z],[j%3===2?x0+14:x1-3,yy,z],"fa");}
+  TICKET.innerHTML=s;}
+function drawBtn(on){BTN.innerHTML=round([PX+26,PY+26,BH+30],[0,0,1],1.4,8,"mid")
+  +(on?round([PX+26,PY+26,BH+31.4],[0,0,1],2.4,6,"hi").replace(/class="hi t"/,'class="lit on-lit"'):round([PX+26,PY+26,BH+31.4],[0,0,1],2.4,6,"hi",{capRing:.6}));}
+
+// ---- ficha (la oferta que viaja)
+const CARD=document.createElementNS("http://www.w3.org/2000/svg","g");
+const card={x:0,y:0,z:0,a:0,on:false,mode:"belt",box:null,dest:""};
+const cardKey=()=>{
+  if(card.box)return card.box.k+.01;                    // dentro de una caja: con su contenido
+  if(card.mode==="chute")return dyn[CHUTE_I].k()+.02;    // sobre la rampa
+  if(card.x<197)return kOf(card.x,card.y,card.z+1);     // aún dentro del lector
+  if(card.y>Y1)return FRONT_RAIL_K+.005;                 // pasando sobre el riel delantero
+  return BELT_K+.01;                                     // sobre la cinta
+};
+dyn.push({k:cardKey,el:CARD,draw:()=>{}});
+const CHUTE_I=dyn.findIndex(d=>d.el===CHUTE);
+function drawCard(){
+  if(!card.on){CARD.innerHTML="";return;}
+  const c=Math.cos(card.a),s=Math.sin(card.a),R=(u,v)=>[card.x+u*c-v*s,card.y+u*s+v*c];
+  const z=card.z;
+  const pl=[R(-12,-8.5),R(12,-8.5),R(12,8.5),R(-12,8.5)];
+  CARD.innerHTML=prism(pl,z,1.4,"hi")+poly(pl.map(p=>[p[0],p[1],z+1.4]),"lit on-lit")
+    +[[-5,-4],[-5,-1],[-5,2],[-5,5]].map(([u,v],j)=>{const a=R(u,v),b=R(j===3?1:8,v);return `<path class="n on-lit" d="M${pt([a[0],a[1],z+1.4])}L${pt([b[0],b[1],z+1.4])}"/>`;}).join("")
+    +(()=>{const h=R(-8.6,-5);return poly(ring([h[0],h[1],z+1.4],[1,0,0],[0,1,0],1.2,12),"n on-lit");})();
+}
+function stackSvg(b,n){let s="";for(let i=0;i<n;i++){const z=BH+1.5+i*1.5,cx=b.x+b.w/2+((i*7)%5-2)*.8,cy=b.y+b.d/2+((i*3)%5-2)*.7;
+  s+=box(cx-10,cy-7.5,z,20,15,1.4,"hi")+line([cx-6,cy+7.5,z+1.4],[cx+3,cy+7.5,z+1.4],"fa");}return s;}
+
+// ---------------------------------------------------------------- montaje SVG
+const svg=document.getElementById("fig");const NS="http://www.w3.org/2000/svg";
+const corners=[];for(const x of [-16,BW+16])for(const y of [-12,BD+16])for(const z of [-10,BH+176])corners.push(P(x,y,z));
+const xs=corners.map(c=>c[0]),ys=corners.map(c=>c[1]);
+const vb=[Math.min(...xs)-6,Math.min(...ys)+78,Math.max(...xs)-Math.min(...xs)+12,Math.max(...ys)-Math.min(...ys)-90];
+svg.setAttribute("viewBox",vb.map(r2).join(" "));
+const grad=t=>`<linearGradient id="g-${t}" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="var(--${t}-f)"/><stop offset=".34" stop-color="var(--${t}-t)"/><stop offset="1" stop-color="var(--${t}-s)"/></linearGradient>`;
+svg.innerHTML=`<defs>${grad("lo")+grad("mid")+grad("hi")}<filter id="blur" x="-10%" y="-20%" width="120%" height="140%"><feGaussianBlur stdDeviation="7"/></filter></defs><g id="scene"></g>`;
+const scene=svg.querySelector("#scene");
+items.sort((a,b)=>a.k-b.k);
+const statics=items.map(it=>{const g=document.createElementNS(NS,"g");g.innerHTML=it.s;scene.appendChild(g);return {k:it.k,el:g};});
+let lastSig="";
+function placeDyn(){
+  const ds=dyn.map(d=>({d,k:d.k()})).sort((a,b)=>a.k-b.k);
+  const tgt=ds.map(o=>{let lo=0,hi=statics.length;while(lo<hi){const m=(lo+hi)>>1;if(statics[m].k<=o.k)lo=m+1;else hi=m;}return lo;});
+  const sig=tgt.join(",")+"|"+ds.map(o=>dyn.indexOf(o.d)).join(",");
+  if(sig===lastSig)return;lastSig=sig;
+  ds.forEach((o,i)=>{const t=statics[tgt[i]];scene.insertBefore(o.d.el,t?t.el:null);});
+}
+
+// ---------------------------------------------------------------- movimiento
+const ease=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
+const seg=(t,a,b)=>ease((t-a)/(b-a));
+const lerp=(a,b,u)=>a+(b-a)*u;
+const DEST={rev:"rev",desc:"desc",campo:"campo",plaza:"plaza",no:"no"};
+const CHA={no:-40,plaza:0,campo:40};
+const DUR=5.2, FINAL=7;
+let idx=0,lt=0,paused=false,hover=false,needle=0,beltOff=0,rollPh=0,printing=0,last=performance.now();
+const counts={rev:0,desc:0,campo:0,plaza:0,no:0};
+function containerOf(o){return BOX[o[7]];}
+function resetCounts(){for(const k in counts)counts[k]=0;}
+function setCountsUpTo(i){resetCounts();for(let j=0;j<i;j++)counts[OF[j][7]]++;}
+const ro=document.getElementById("ro");
+let lastRo="";
+function readout(s){if(s!==lastRo){ro.textContent=s;lastRo=s;}}
+function insumoTube(ins){return TUBE.findIndex(t=>t.ins===ins);}
+
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  const run=!paused&&!hover&&!reduce;
+  if(run)lt+=dt;
+  let beltV=0;
+  if(idx<OF.length){
+    const o=OF[idx],t=lt,dest=o[7];
+    // ruta de la ficha
+    card.on=true;card.mode="belt";card.a=0;card.box=null;card.dest=dest;
+    let x=176,y=92,z=BZ,va=-1;
+    if(t<1.1){x=lerp(176,JX,seg(t,0,1.1));beltV=seg(t,0,.2)*(1-seg(t,.9,1.1));}
+    else if(t<2.9){x=JX;}
+    else{
+      const tx=dest==="rev"?RXp:dest==="desc"?DXp:BX1-4;
+      const t1=dest==="rev"?3.4:dest==="desc"?3.6:3.9;
+      x=lerp(JX,tx,seg(t,2.9,t1));if(t<t1)beltV=1;
+      if(dest==="rev"){     // la placa avanza, toca la ficha y la lleva a la bandeja
+        pushR=t<4.3?83*seg(t,3.4,4.0):83*(1-seg(t,4.3,4.8));
+        y=Math.max(92,Math.min(147,56+83*seg(t,3.4,4.0)+8));
+        if(t>4.0){card.box=BOX.rev;z=lerp(BZ,BH+1.5+counts.rev*1.5,seg(t,4.0,4.2));}}
+      else if(dest==="desc"){
+        pushD=t<4.4?81*seg(t,3.6,4.2):81*(1-seg(t,4.4,4.9));
+        y=Math.min(92,Math.max(36,117-81*seg(t,3.6,4.2)));
+        if(t>4.2){card.box=BOX.desc;z=lerp(BZ,BH+1.5+counts.desc*1.5,seg(t,4.2,4.45));}}
+      else{
+        const A=CHA[dest]*Math.PI/180;
+        if(t>3.9){card.mode="chute";const u=seg(t,3.9,4.45);
+          const r=lerp(BX1-4-PIV[0],32,u);x=PIV[0]+r*Math.cos(A);y=PIV[1]+r*Math.sin(A);z=lerp(BZ,BH+18,u);card.a=A*u;
+          if(t>4.45){card.mode="belt";card.box=BOX[dest];const w=seg(t,4.45,4.75);
+            x=lerp(PIV[0]+32*Math.cos(A),PIV[0]+48*Math.cos(A),w);y=lerp(PIV[1]+32*Math.sin(A),PIV[1]+48*Math.sin(A),w);
+            z=lerp(BH+18,BH+1.5+counts[dest]*1.5,w);card.a=A;}}
+      }
+    }
+    if(dest!=="rev"&&dest!=="desc"){const target=CHA[dest]*Math.PI/180;chuteA=lerp(chuteA,target,1-Math.exp(-dt*(t>2.6?6:0)));}
+    if(dest!=="rev")pushR=0;if(dest!=="desc")pushD=0;
+    card.x=x;card.y=y;card.z=z;
+    // sonda y votos
+    const zf=t<1.2?64:t<1.5?lerp(64,BZ+1.4,seg(t,1.2,1.5)):t<2.6?BZ+1.4:lerp(BZ+1.4,64,seg(t,2.6,2.95));
+    const votes=o[4].split(" "),win=[0,1,2].map(i=>{const c={};votes.forEach(v=>c[v[i]]=(c[v[i]]||0)+1);return Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0];}).join("");
+    const st=votes.map((v,i)=>t<1.55+i*.2?0:t>4.6?0:(v===win?1:2));
+    drawLamps(st);drawProbe(zf);
+    const target=t>1.55&&t<4.6?o[5]*Math.min(1,st.filter(s=>s).length/5)+(st.filter(s=>s).length===5?0:0):0;
+    needle+=( (t>1.55&&t<4.6?o[5]*(.4+.6*seg(t,1.55,2.55)):0) -needle)*(1-Math.exp(-dt*7));
+    drawNeedle(Math.max(0,needle));
+    // lectura en vivo
+    const verdict=t<1.55?"leyendo…":t<2.6?"votando…":o[6];
+    readout(`oferta ${idx+1}/20 · ${PROV[o[0]]}\n${o[1]} · ${fmt(o[3])}/u · votos ${t<1.55?"—":votes.join(" ")}\nconfianza ${t<2.6?"…":o[5].toFixed(2)+(o[5]>=UMBRAL?" ≥ ":" < ")+UMBRAL.toFixed(2)} → ${verdict}`);
+    // tubo del insumo
+    const ti=insumoTube(o[2]);TUBE.forEach((tb,i)=>{if(tb._a!==(i===ti)){tb._a=(i===ti);drawTube(tb,tb._a);}});
+    // hoja de cotización que se alimenta
+    const prev=idx>0?OF[idx-1][0]:-1,newSup=o[0]!==prev;
+    drawSlips(o[0],newSup?seg(t,0,.9):1);
+    if(lt>=DUR){counts[dest]++;idx++;lt=0;card.on=false;}
+    printing=0;
+  }else{
+    card.on=false;pushR=0;pushD=0;drawProbe(64);drawLamps([0,0,0,0,0]);
+    needle+=(0-needle)*(1-Math.exp(-dt*5));drawNeedle(needle);
+    drawSlips(9,0);
+    printing=Math.min(1,lt/2);
+    readout(`plan listo · 2 pedidos · ${TOTAL}\nEl Campo $1.496.000 · Plaza Central $453.600\n3 a revisión · 1 descartada · esperando «sí» del dueño`);
+    TUBE.forEach(tb=>{if(tb._a){tb._a=false;drawTube(tb,false);}});
+    if(lt>=FINAL){idx=0;lt=0;resetCounts();}
+  }
+  if(run){beltOff+=beltV*dt*95;rollPh+=(idx<OF.length&&lt<1.1?1:0)*dt*6;}
+  drawBelt(beltOff);drawRollers(rollPh);drawPushers();drawChute();drawCard();
+  drawTicket(printing*48);drawBtn(idx>=OF.length&&lt>2);
+  for(const n in BOX){const b=BOX[n];if(b._n!==counts[n]){b._n=counts[n];b.el.innerHTML=stackSvg(b,counts[n]);}}
+  placeDyn();
+  if(visible&&!reduce)raf=requestAnimationFrame(frame);else raf=0;
+}
+
+// ---------------------------------------------------------------- control
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let visible=true,raf=0;
+const kick=()=>{if(!raf){last=performance.now();raf=requestAnimationFrame(frame);}};
+new IntersectionObserver(es=>{visible=es[0].isIntersecting;if(visible)kick();}).observe(svg);
+const cardEl=document.getElementById("card");
+svg.addEventListener("pointerenter",()=>hover=true);
+svg.addEventListener("pointerleave",()=>hover=false);
+const jump=d=>{idx=(Math.min(OF.length,Math.max(0,idx+d))+OF.length+1)%(OF.length+1);lt=idx<OF.length?2.7:2.5;setCountsUpTo(Math.min(idx,OF.length));kick();if(reduce)frame(performance.now());};
+addEventListener("keydown",e=>{if(e.key==="ArrowRight"){jump(1);e.preventDefault();}else if(e.key==="ArrowLeft"){jump(-1);e.preventDefault();}
+  else if(e.key===" "&&e.target===document.body){paused=!paused;bp.textContent=paused?"seguir":"pausa";e.preventDefault();}});
+const bp=document.getElementById("bp");bp.onclick=()=>{paused=!paused;bp.textContent=paused?"seguir":"pausa";};
+document.getElementById("bt").onclick=()=>{const r=document.documentElement;const dark=getComputedStyle(r).getPropertyValue("--bg").trim()==="#0e1013";r.dataset.theme=dark?"light":"dark";};
+if(reduce){idx=16;lt=2.7;setCountsUpTo(16);}
+window.__anat={seek(i,t){idx=i;lt=t;setCountsUpTo(Math.min(i,OF.length));if(i<OF.length){const d=OF[i][7];if(CHA[d]!==undefined&&t>3)chuteA=CHA[d]*Math.PI/180;}needle=i<OF.length&&t>2.6?OF[i][5]:needle;last=performance.now();paused=true;frame(last);}};
+TUBE.forEach(t=>drawTube(t,false));
+frame(performance.now());
+if(/light/.test(location.hash))document.documentElement.dataset.theme="light";
+const hm=location.hash.match(/t=([\d.]+),([\d.]+)/);if(hm)__anat.seek(+hm[1],+hm[2]);
+})();
+</script>
+</body>
+</html>

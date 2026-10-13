@@ -1,0 +1,37 @@
+fecha,proveedor,producto,insumo,pregunta,respuesta,prob_cruda,acierto
+2026-10-08T12:15:34,Plaza Central (puesto 14),lechuga romana,lechuga romana,mismo_producto,S,0.9166666666666666,1
+2026-10-08T12:16:00,Plaza Central (puesto 14),plátano maduro,platano maduro,mismo_producto,S,0.9166666666666666,1
+2026-10-08T12:16:00,Plaza Central (puesto 14),plátano maduro,platano maduro,calidad,A,0.9166666666666666,1
+2026-10-08T12:16:01,Plaza Central (puesto 14),plátano maduro,platano maduro,requiere_revision,N,0.9166666666666666,1
+2026-10-08T12:16:01,Plaza Central (puesto 14),zanahoria,zanahoria,mismo_producto,S,0.9166666666666666,1
+2026-10-08T12:16:02,Plaza Central (puesto 14),zanahoria,zanahoria,calidad,A,0.5833333333333334,1
+2026-10-08T12:16:02,Plaza Central (puesto 14),zanahoria,zanahoria,requiere_revision,N,0.9166666666666666,1
+2026-10-08T12:16:04,Plaza Central (puesto 14),lechuga romana,lechuga romana,calidad,A,0.9166666666666666,1
+2026-10-08T12:16:05,Plaza Central (puesto 14),lechuga romana,lechuga romana,requiere_revision,N,0.9166666666666666,1
+2026-10-08T12:16:06,Plaza Central (puesto 14),aguacate hass,aguacate hass,calidad,A,0.9166666666666666,1
+2026-10-08T12:16:06,Plaza Central (puesto 14),aguacate hass,aguacate hass,requiere_revision,N,0.9166666666666666,1
+2026-10-08T12:16:07,Plaza Central (puesto 14),aguacate hass,aguacate hass,mismo_producto,S,0.9166666666666666,1
+2026-10-08T12:16:09,Mayorista Santander,Zanahoria bulto 20 kg,zanahoria,mismo_producto,S,0.9166666666666666,1
+2026-10-08T12:16:09,Mayorista Santander,Zanahoria bulto 20 kg,zanahoria,calidad,B,0.75,1
+2026-10-08T12:16:10,Mayorista Santander,Zanahoria bulto 20 kg,zanahoria,requiere_revision,N,0.9166666666666666,1
+2026-10-08T12:16:11,Mayorista Santander,Queso parmesano rallado 1 kg (marca propia),queso parmesano,mismo_producto,S,0.9166666666666666,1
+2026-10-08T12:16:12,Mayorista Santander,Queso parmesano rallado 1 kg (marca propia),queso parmesano,calidad,B,0.9166666666666666,1
+2026-10-08T12:16:12,Mayorista Santander,Queso parmesano rallado 1 kg (marca propia),queso parmesano,requiere_revision,N,0.75,1
+2026-10-08T12:16:13,Mayorista Santander,Huevo AA cubeta x 30,huevo,mismo_producto,S,0.9166666666666666,1
+2026-10-08T12:16:13,Mayorista Santander,Huevo AA cubeta x 30,huevo,calidad,A,0.9166666666666666,1
+2026-10-08T12:16:14,Mayorista Santander,Huevo AA cubeta x 30,huevo,requiere_revision,N,0.9166666666666666,1
+2026-10-08T12:16:15,Mayorista Santander,Frijol cargamanto rojo bulto 25 kg,frijol cargamanto,calidad,B,0.9166666666666666,1
+2026-10-08T12:16:15,Mayorista Santander,Frijol cargamanto rojo bulto 25 kg,frijol cargamanto,mismo_producto,S,0.9166666666666666,1
+2026-10-08T12:16:15,Mayorista Santander,Frijol cargamanto rojo bulto 25 kg,frijol cargamanto,requiere_revision,N,0.9166666666666666,1
+2026-10-08T12:16:17,Mayorista Santander,Arroz blanco Roa bulto 25 kg,arroz blanco,requiere_revision,N,0.9166666666666666,1
+2026-10-08T12:16:17,Mayorista Santander,Arroz blanco Roa bulto 25 kg,arroz blanco,calidad,A,0.9166666666666666,1
+2026-10-08T12:16:17,Mayorista Santander,Arroz blanco Roa bulto 25 kg,arroz blanco,mismo_producto,S,0.9166666666666666,1
+2026-10-08T12:16:24,Distribuidora El Campo,Frijol cargamanto rojo,frijol cargamanto,mismo_producto,S,0.9166666666666666,1
+2026-10-08T12:16:25,Distribuidora El Campo,Frijol cargamanto rojo,frijol cargamanto,calidad,B,0.9166666666666666,1
+2026-10-08T12:16:26,Distribuidora El Campo,Frijol cargamanto rojo,frijol cargamanto,requiere_revision,N,0.9166666666666666,1
+2026-10-08T12:16:34,Distribuidora El Campo,Carne molida de res especial (90/10),carne molida de res,requiere_revision,N,0.9166666666666666,1
+2026-10-08T12:16:34,Distribuidora El Campo,Carne molida de res especial (90/10),carne molida de res,calidad,A,0.9166666666666666,1
+2026-10-08T12:16:35,Distribuidora El Campo,Carne molida de res especial (90/10),carne molida de res,mismo_producto,S,0.9166666666666666,1
+2026-10-08T12:16:48,Carnes La Hacienda,Pechuga con hueso,pechuga de pollo,calidad,B,0.9166666666666666,1
+2026-10-08T12:16:49,Carnes La Hacienda,Pechuga con hueso,pechuga de pollo,mismo_producto,N,0.9166666666666666,1
+2026-10-08T12:16:50,Carnes La Hacienda,Pechuga con hueso,pechuga de pollo,requiere_revision,S,0.9166666666666666,1

@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guía del agente de compras</title>
+<style>
+:root{
+  --bg:#f6f5f2; --panel:#ffffff; --ink:#1d1d1b; --muted:#6b6a66; --line:#e4e2dc;
+  --grok:#2f6fdb; --grok-soft:#e8f0fd; --jev:#8a4fd8; --jev-soft:#f2eafc;
+  --ok:#1f8a4c; --ok-soft:#e5f4ea; --warn:#b26b00; --warn-soft:#fdf1dc; --bad:#c23b32; --bad-soft:#fbe7e5;
+  --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#141413; --panel:#1e1e1c; --ink:#ecebe7; --muted:#9c9b96; --line:#2f2f2c;
+  --grok:#6c9cf0; --grok-soft:#1b2740; --jev:#b48af0; --jev-soft:#2a1f3d;
+  --ok:#4cc27e; --ok-soft:#173023; --warn:#e3a443; --warn-soft:#352812; --bad:#ef6b62; --bad-soft:#3a1c1a;
+}}
+:root[data-theme="dark"]{
+  --bg:#141413; --panel:#1e1e1c; --ink:#ecebe7; --muted:#9c9b96; --line:#2f2f2c;
+  --grok:#6c9cf0; --grok-soft:#1b2740; --jev:#b48af0; --jev-soft:#2a1f3d;
+  --ok:#4cc27e; --ok-soft:#173023; --warn:#e3a443; --warn-soft:#352812; --bad:#ef6b62; --bad-soft:#3a1c1a;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;gap:12px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
+header h1{font-size:17px;margin:0}
+header a.volver{margin-left:auto;font-size:13.5px;font-weight:600;color:var(--bg);background:var(--ink);border-radius:7px;padding:6px 14px;text-decoration:none;white-space:nowrap}
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);gap:32px;max-width:1180px;margin:0 auto;padding:24px 20px 80px}
+nav.toc{position:sticky;top:78px;align-self:start;font-size:13.5px;max-height:calc(100vh - 100px);overflow:auto}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 10px;border-left:2px solid var(--line)}
+nav.toc a:hover{color:var(--ink)}
+nav.toc a.activo{color:var(--ink);border-left-color:var(--ink);font-weight:600}
+nav.toc .grupo{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:14px 0 4px 12px;font-weight:600}
+article{min-width:0;max-width:820px}
+section.s{margin-bottom:56px}
+h2{font-size:24px;margin:0 0 6px;line-height:1.25}
+h2 .num{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:16px;margin-right:10px;vertical-align:3px}
+h3{font-size:16.5px;margin:26px 0 8px}
+p{margin:0 0 12px}
+.lead{font-size:16.5px;color:var(--muted);margin-bottom:18px}
+code,kbd{font:13px var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+pre{white-space:pre-wrap;font:13px/1.5 var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 14px;margin:0 0 14px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 16px}
+th{text-align:left;color:var(--muted);font-weight:500;border-bottom:1px solid var(--line);padding:6px 8px}
+td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num,th.num{text-align:right;font-family:var(--mono);white-space:nowrap}
+.tabla{overflow-x:auto}
+.caja{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:14px 16px;margin:0 0 16px}
+.caja.tip{border-left:4px solid var(--ok)} .caja.ojo{border-left:4px solid var(--warn)}
+.caja.grok{border-left:4px solid var(--grok)} .caja.jev{border-left:4px solid var(--jev)}
+.caja .tit{font-weight:600;margin-bottom:4px}
+.caja p:last-child,.caja ul:last-child{margin-bottom:0}
+ul,ol{margin:0 0 12px;padding-left:22px} li{margin:3px 0}
+.flujo{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:18px 0 8px}
+.flujo .e{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13px;position:relative}
+.flujo .e b{display:block;font-size:13.5px}
+.flujo .e .q{color:var(--muted);font-size:12px}
+.flujo .e .tag{display:inline-block;font-size:11px;font-weight:600;border-radius:99px;padding:1px 8px;margin-top:6px}
+.tag.cod{background:var(--ok-soft);color:var(--ok)} .tag.ia{background:var(--grok-soft);color:var(--grok)} .tag.vot{background:var(--jev-soft);color:var(--jev)}
+.flujo .e:not(:last-child)::after{content:"→";position:absolute;right:-12px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700;z-index:1}
+.ent-sal{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.ent-sal .caja{margin:0}
+.ent-sal .caja .tit{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.formula{font:14px var(--mono);background:var(--panel);border:1px dashed var(--line);border-radius:9px;padding:10px 14px;margin:0 0 14px}
+.calc{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px;margin:0 0 14px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px 16px}
+.calc .k{color:var(--muted)} .calc .v{font-family:var(--mono)}
+.calc .v.res{font-weight:700}
+/* maqueta anotada de los paneles de la interfaz */
+.maqueta{border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden;margin:0 0 6px}
+.maqueta .cab{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);font-size:13px}
+.maqueta .cab b{font-size:14px}
+.maqueta .cab .rol{color:var(--muted);font-size:12px}
+.maqueta .cuerpo{padding:10px 12px;font-size:12.5px}
+.maqueta table{font-size:12.5px;margin:0}
+.maqueta td,.maqueta th{padding:3px 6px}
+.punto{width:9px;height:9px;border-radius:50%;flex:none}
+.urg{color:var(--bad);font-weight:600}
+.nulo{color:var(--bad)}
+.sub{color:var(--muted);font-size:12px}
+.badge{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.b-apta{background:var(--ok-soft);color:var(--ok)} .b-revision{background:var(--warn-soft);color:var(--warn)}
+.b-descartada{background:var(--bad-soft);color:var(--bad)} .b-elegida{background:var(--ok);color:var(--panel)}
+.preg{display:grid;grid-template-columns:118px 1fr 92px;gap:8px;align-items:center;font-size:12.5px;margin-top:5px}
+.preg .lbl{color:var(--muted)} .preg .val{font-family:var(--mono);text-align:right}
+.barra{height:7px;background:var(--bg);border-radius:4px;position:relative}
+.barra i{position:absolute;inset:0 auto 0 0;border-radius:4px;background:var(--jev)}
+.barra i.baja{background:var(--warn)}
+.barra .umbral{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.55}
+.votos{font:11.5px var(--mono);color:var(--muted);margin-top:5px}
+.motivo{font-size:12px;color:var(--muted);margin-top:5px}
+.card{border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+.card.elegida{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok) inset}
+.card .t{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.card .t .der{margin-left:auto;font:12px var(--mono);color:var(--muted)}
+.prov h4{font-size:13px;margin:0 0 4px;display:flex;gap:8px} .prov h4 span{margin-left:auto;font-family:var(--mono)}
+.chip{font-size:12px;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;display:inline-block}
+.chip b{color:var(--ink)}
+.chip.g{border-color:var(--grok);color:var(--grok)} .chip.j{border-color:var(--jev);color:var(--jev)}
+/* marcadores numerados sobre las maquetas */
+.m{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--warn);color:#fff;font:700 11px system-ui;flex:none;vertical-align:1px}
+.notas{list-style:none;padding:0;margin:10px 0 18px}
+.notas li{display:flex;gap:10px;align-items:flex-start;margin:7px 0;font-size:14px}
+.notas li .m{margin-top:3px}
+.pasos{counter-reset:p;list-style:none;padding:0}
+.pasos>li{counter-increment:p;position:relative;padding:0 0 14px 42px;margin:0}
+.pasos>li::before{content:counter(p);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.pasos>li b{display:block}
+details.faq{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:10px 14px;margin:0 0 8px}
+details.faq summary{cursor:pointer;font-weight:600}
+details.faq[open] summary{margin-bottom:8px}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:0}
+  nav.toc{position:static;max-height:none;margin-bottom:24px;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--panel)}
+  .flujo{grid-template-columns:1fr}
+  .flujo .e:not(:last-child)::after{content:"↓";right:auto;left:50%;top:auto;bottom:-15px;transform:translateX(-50%)}
+  .ent-sal{grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  header,.layout{padding-left:16px;padding-right:16px}
+  .preg{grid-template-columns:90px 1fr 80px}
+  h2{font-size:21px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Guía · Agente de compras</h1>
+  <a class="volver" href="/">← Volver a la interfaz</a>
+</header>
+
+<div class="layout">
+<nav class="toc" id="toc">
+  <div class="grupo">Empezar</div>
+  <a href="#que-es">Qué hace el agente</a>
+  <a href="#flujo">El flujo completo</a>
+  <a href="#datos">Los datos de entrada</a>
+  <div class="grupo">Los 5 pasos</div>
+  <a href="#paso1">1 · Demanda</a>
+  <a href="#paso2">2 · Búsqueda (Grok)</a>
+  <a href="#paso3">3 · Juicio</a>
+  <a href="#paso4">4 · Optimización</a>
+  <a href="#paso5">5 · Reporte</a>
+  <div class="grupo">Usarlo</div>
+  <a href="#interfaz">La barra superior</a>
+  <a href="#rutina">Rutina semanal</a>
+  <a href="#calibrar">Calibrar al juez</a>
+  <a href="#salidas">Archivos de salida</a>
+  <a href="#ajustes">Ajustes (.env)</a>
+  <a href="#faq">Preguntas frecuentes</a>
+</nav>
+
+<article>
+
+<!-- ============================================================ -->
+<section class="s" id="que-es">
+  <h2>Qué hace el agente</h2>
+  <p class="lead">Mira cuánto vendes, calcula qué insumos se van a acabar esta semana, lee las cotizaciones que te mandan los proveedores, decide cuáles ofertas sirven y te propone el pedido más barato. <b>Tú apruebas antes de que se compre nada.</b></p>
+  <p>Responde cuatro preguntas, en este orden:</p>
+  <ol>
+    <li><b>¿Qué me falta?</b> — cuánto de cada insumo necesito para los próximos 7 días.</li>
+    <li><b>¿Quién lo vende y a cuánto?</b> — las ofertas de cada proveedor, todas en la misma unidad.</li>
+    <li><b>¿Sirve esa oferta?</b> — si es el producto correcto, de buena calidad y de un proveedor confiable.</li>
+    <li><b>¿Cuál es la compra más barata?</b> — contando envíos, pedidos mínimos y presentaciones.</li>
+  </ol>
+  <div class="caja tip">
+    <div class="tit">La idea clave</div>
+    <p>Las cuentas (cantidades, precios, totales) las hace código normal, que no se equivoca. La IA (Grok) solo hace lo que el código no puede: leer mensajes de WhatsApp desordenados y juzgar si “pechuga con hueso” sirve cuando la receta pide pechuga limpia.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<section class="s" id="flujo">
+  <h2>El flujo completo</h2>
+  <p>Cada corrida pasa por cinco etapas. Son las mismas cinco cajas que ves arriba en la interfaz, y se van poniendo en verde a medida que terminan.</p>
+  <div class="flujo">
+    <div class="e"><b>1 · Demanda</b><span class="q">¿Qué me falta?</span><br><span class="tag cod">código</span></div>
+    <div class="e"><b>2 · Búsqueda</b><span class="q">¿Quién vende qué?</span><br><span class="tag ia">Grok</span></div>
+    <div class="e"><b>3 · Juicio</b><span class="q">¿Sirve la oferta?</span><br><span class="tag vot">Grok × votos</span></div>
+    <div class="e"><b>4 · Optimización</b><span class="q">¿Qué es lo más barato?</span><br><span class="tag cod">código</span></div>
+    <div class="e"><b>5 · Reporte</b><span class="q">Mensaje para ti</span><br><span class="tag ia">Grok</span></div>
+  </div>
+  <p class="sub" style="margin-bottom:16px">Verde = cálculo determinista (siempre da lo mismo). Azul / morado = usa a Grok.</p>
+  <div class="tabla"><table>
+    <tr><th>Etapa</th><th>Lee</th><th>Produce</th><th>Dónde lo ves</th></tr>
+    <tr><td>1 · Demanda</td><td>ventas, recetas, inventario</td><td>lista de insumos a comprar</td><td>panel <b>Demanda</b></td></tr>
+    <tr><td>2 · Búsqueda</td><td>cotizaciones (<code>proveedores/*.txt</code>)</td><td>ofertas normalizadas</td><td>columna <b>Grok</b></td></tr>
+    <tr><td>3 · Juicio</td><td>cada oferta + historial de proveedores</td><td>apta / a revisión / descartada</td><td>columna <b>Juez</b></td></tr>
+    <tr><td>4 · Optimización</td><td>necesidades + ofertas aptas</td><td>pedido por proveedor</td><td>panel <b>Plan de compra</b></td></tr>
+    <tr><td>5 · Reporte</td><td>el plan</td><td>mensaje estilo WhatsApp</td><td>panel <b>Reporte</b></td></tr>
+  </table></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="s" id="datos">
+  <h2>Los datos de entrada</h2>
+  <p class="lead">Todo vive en la carpeta <code>data/</code>. Son archivos CSV (se abren y editan en Excel) y textos planos.</p>
+
+  <h3>ventas.csv — lo que vendiste</h3>
+  <p>Una fila por plato y por día. Sale del POS (la caja registradora), exportando “ventas por producto”. Con 2–3 semanas basta para empezar; con más, el pronóstico mejora.</p>
+  <pre>fecha,plato,cantidad
+2026-09-21,bandeja paisa,38
+2026-09-21,arroz con pollo,25</pre>
+  <p><b>Para qué sirve:</b> saber cuántas porciones de cada plato vas a vender la próxima semana.</p>
+
+  <h3>recetas.csv — qué lleva cada plato</h3>
+  <p>Cuánto de cada insumo lleva <b>una porción</b>. Lo llena el chef una sola vez. Unidades permitidas: <code>g</code>, <code>ml</code>, <code>unidad</code> (también <code>kg</code>, <code>L</code>, <code>lb</code>).</p>
+  <pre>plato,insumo,cantidad_por_porcion,unidad
+bandeja paisa,carne molida de res,150,g
+bandeja paisa,huevo,1,unidad</pre>
+  <p><b>Para qué sirve:</b> convertir “243 bandejas paisas” en “36,5 kg de carne molida”.</p>
+
+  <h3>inventario.csv — lo que tienes en bodega</h3>
+  <p>El conteo físico, idealmente el mismo día que corres el agente.</p>
+  <pre>insumo,cantidad,unidad
+carne molida de res,8,kg
+huevo,180,unidad</pre>
+  <div class="caja ojo">
+    <div class="tit">Los nombres tienen que coincidir</div>
+    <p>El insumo se llama igual en <code>recetas.csv</code> e <code>inventario.csv</code> (es la llave que los une). Si en uno dice “carne molida de res” y en el otro “carne molida”, el agente cree que tienes 0 en bodega y pedirá de más.</p>
+  </div>
+
+  <h3>historial_proveedores.csv — cómo te ha ido con cada proveedor</h3>
+  <pre>proveedor,entregas_totales,entregas_a_tiempo,calidad_promedio_1a5,reclamos
+Distribuidora El Campo,24,23,4.5,1
+Fruver Express,5,3,3.0,2</pre>
+  <p><b>Para qué sirve:</b> calcular si un proveedor es confiable (ver <a href="#paso3">paso 3</a>). Se va llenando con cada compra: entregas totales, cuántas llegaron a tiempo, la calidad que le diste de 1 a 5 y cuántos reclamos hubo.</p>
+
+  <h3>proveedores/*.txt — las cotizaciones</h3>
+  <p>Un archivo por proveedor, con el texto <b>tal cual</b> te llegó: mensaje de WhatsApp, PDF copiado, nota de voz transcrita o catálogo web. No hace falta ordenarlo; ese es el trabajo de Grok.</p>
+  <pre>Proveedor: Fruver Express
+Hola! Promo de hoy:
+🥑 Aguacate hass x kg $13.000 (segunda, algunos maduros)
+🥬 Lechuga romana x kg $3.900
+Envío $6.000. Sin pedido mínimo. Entrega en 2 horas.</pre>
+  <div class="caja tip">
+    <div class="tit">Incluye siempre</div>
+    <p>Pedido mínimo, costo de envío (y desde cuánto es gratis) y tiempo de entrega, si el proveedor los menciona. El optimizador los usa para el total.</p>
+  </div>
+
+  <h3>Archivos que el agente crea solo</h3>
+  <ul>
+    <li><code>ofertas_mock.json</code> — ofertas ya extraídas, para el modo Mock (sin gastar en Grok).</li>
+    <li><code>etiquetas.csv</code> — tus marcas ✓/✗ sobre el juez (ver <a href="#calibrar">Calibrar</a>).</li>
+    <li><code>calibracion.json</code> — aparece cuando corres <code>python calibrar.py</code>.</li>
+  </ul>
+</section>
+
+<!-- ============================================================ -->
+<section class="s" id="paso1">
+  <h2><span class="num">1</span>Demanda: qué comprar y cuánto</h2>
+  <p class="lead">Código puro, sin IA. Calcula cuánto vas a gastar de cada insumo en los próximos 7 días y lo compara con lo que tienes.</p>
+
+  <div class="ent-sal">
+    <div class="caja"><div class="tit">Entra</div>ventas.csv · recetas.csv · inventario.csv · fecha de pronóstico</div>
+    <div class="caja"><div class="tit">Sale</div>lista de insumos a comprar, ordenada del más urgente al menos, y lista de sobrantes</div>
+  </div>
+
+  <h3>Cómo calcula</h3>
+  <ol>
+    <li><b>Pronóstico de platos.</b> Para cada día de los próximos 7, toma el promedio de ventas de <i>ese mismo día de la semana</i>. Así un sábado se compara con sábados (que venden más) y un martes con martes.</li>
+    <li><b>De platos a insumos.</b> Porciones × receta, y lo pasa a kg, L o unidades.</li>
+    <li><b>Colchón de seguridad.</b> Agrega un 15 % extra por si vendes más de lo esperado.</li>
+    <li><b>Resta lo que tienes.</b> Si el resultado es positivo, hay que comprar.</li>
+  </ol>
+  <div class="formula">comprar = demanda × (1 + 15 %) − inventario<br>cobertura (días) = inventario ÷ (demanda ÷ 7)</div>
+
+  <h3>Ejemplo real con tus datos: carne molida de res</h3>
+  <div class="calc">
+    <span class="k">Bandejas paisas esperadas (7 días)</span><span class="v">243,5 porciones</span>
+    <span class="k">× 150 g de carne por bandeja</span><span class="v">= 36,5 kg de demanda</span>
+    <span class="k">+ 15 % de seguridad</span><span class="v">= 42,0 kg objetivo</span>
+    <span class="k">− inventario</span><span class="v">− 8,0 kg</span>
+    <span class="k">A comprar</span><span class="v res">34,0 kg</span>
+    <span class="k">Cobertura actual</span><span class="v">8 ÷ (36,5 ÷ 7) = 1,5 días</span>
+  </div>
+
+  <h3>Cómo leer el panel “Demanda”</h3>
+  <div class="maqueta">
+    <div class="cab"><b>Demanda</b><span class="rol">qué falta para el horizonte</span></div>
+    <div class="cuerpo"><table>
+      <tr><th>insumo <span class="m">1</span></th><th class="num">cobertura <span class="m">2</span></th><th class="num">stock <span class="m">3</span></th><th class="num">comprar <span class="m">4</span></th></tr>
+      <tr><td>aguacate hass</td><td class="num urg">1.4 d</td><td class="num">4</td><td class="num">18.4 kg</td></tr>
+      <tr><td>carne molida de res</td><td class="num urg">1.5 d</td><td class="num">8</td><td class="num">34 kg</td></tr>
+      <tr><td>huevo</td><td class="num">5.2 d</td><td class="num">180</td><td class="num">100.02 unidad</td></tr>
+      <tr><td>arroz blanco</td><td class="num">7.7 d</td><td class="num">60</td><td class="num">2.37 kg</td></tr>
+    </table>
+    <div class="sub" style="margin-top:8px;font-weight:600;text-transform:uppercase">Sobrantes <span class="m">5</span></div>
+    <div class="sub">• (ejemplo) sal (20 d)</div></div>
+  </div>
+  <ul class="notas">
+    <li><span class="m">1</span><span><b>Insumo.</b> Solo aparecen los que hay que comprar, ordenados del más urgente al menos.</span></li>
+    <li><span class="m">2</span><span><b>Cobertura:</b> cuántos días te dura lo que tienes al ritmo de venta esperado. <span class="urg">En rojo</span> si es menos de 2 días: hay que pedir ya.</span></li>
+    <li><span class="m">3</span><span><b>Stock:</b> lo que dice tu inventario hoy (en kg, L o unidades).</span></li>
+    <li><span class="m">4</span><span><b>Comprar:</b> lo que falta para cubrir la semana con el colchón. Es una cantidad exacta; el optimizador la redondea a presentaciones reales (bultos, cajas).</span></li>
+    <li><span class="m">5</span><span><b>Sobrantes:</b> insumos con más de 2,5 semanas en bodega. No se compran; revisa si se están dañando o si cambió el menú.</span></li>
+  </ul>
+  <div class="caja tip"><div class="tit">Úsalo para</div><p>Revisar que el pronóstico tenga sentido antes de mirar precios. Si un número te parece raro, casi siempre es el inventario mal contado o un nombre de insumo que no coincide.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="s" id="paso2">
+  <h2><span class="num">2</span>Búsqueda: Grok lee las cotizaciones</h2>
+  <p class="lead">Grok lee cada cotización cruda y la convierte en una tabla de ofertas, todas en la misma unidad (kg, L o unidad) y en pesos.</p>
+
+  <div class="ent-sal">
+    <div class="caja"><div class="tit">Entra</div>cada <code>proveedores/*.txt</code> + la lista de insumos que necesitas</div>
+    <div class="caja"><div class="tit">Sale</div>ofertas: producto, insumo al que corresponde, presentación, precio, envío, mínimo</div>
+  </div>
+
+  <h3>Qué hace con cada mensaje</h3>
+  <ul>
+    <li><b>Normaliza unidades:</b> “bolsa x 500 g” → 0,5 kg; “cubeta x 30” → 30 unidades; precio por libra → precio por kg (× 2).</li>
+    <li><b>Lo empareja con tu receta:</b> “Carne molida especial 90/10” → <i>carne molida de res</i>. Si no corresponde a nada que necesites, lo marca como <i>no aplica</i>.</li>
+    <li><b>Guarda señales de calidad:</b> marca, “especial”, “segunda”, “con hueso”, “maduros”… El juez las usa en el paso 3.</li>
+    <li><b>Detecta agotados</b> y las condiciones del proveedor: pedido mínimo, envío, envío gratis desde, horas de entrega.</li>
+  </ul>
+  <div class="caja ojo"><div class="tit">En modo Mock</div><p>No se llama a Grok: las ofertas salen ya listas de <code>data/ofertas_mock.json</code>. Sirve para probar sin gastar tokens.</p></div>
+
+  <h3>Cómo leer una tarjeta de la columna “Grok”</h3>
+  <div class="maqueta">
+    <div class="cab"><span class="punto" style="background:var(--grok)"></span><b>Grok</b><span class="rol">lee cotizaciones → ofertas normalizadas</span></div>
+    <div class="cuerpo"><div class="card">
+      <div class="t"><b>Distribuidora El Campo</b> <span class="m">1</span><span class="sub">distribuidora_el_campo.txt</span><span class="der">7 ofertas · 4210 ms</span></div>
+      <table style="margin-top:6px"><tr><th>producto</th><th>→ insumo <span class="m">2</span></th><th class="num">pres. <span class="m">3</span></th><th class="num">precio</th><th class="num">unit. <span class="m">4</span></th></tr>
+        <tr><td>Carne molida especial 90/10</td><td>carne molida de res</td><td class="num">5 kg</td><td class="num">$62.000</td><td class="num">$12.400/kg</td></tr>
+        <tr><td>Queso parmesano Colanta</td><td>queso parmesano</td><td class="num">0.5 kg</td><td class="num">$24.000</td><td class="num">$48.000/kg</td></tr>
+        <tr><td>Aceite vegetal Premier</td><td><span class="nulo">— no aplica</span></td><td class="num">20 L</td><td class="num">$165.000</td><td class="num">$8.250/L</td></tr>
+      </table>
+      <div class="sub" style="margin-top:4px">mín. $150.000 · envío $12.000 (gratis desde $300.000) · entrega 24 h <span class="m">5</span></div>
+      <div class="sub" style="margin-top:4px">▸ texto crudo de la cotización <span class="m">6</span></div>
+    </div></div>
+  </div>
+  <ul class="notas">
+    <li><span class="m">1</span><span><b>Proveedor</b>, archivo de origen, cuántas ofertas encontró y cuánto tardó Grok.</span></li>
+    <li><span class="m">2</span><span><b>→ insumo:</b> a qué ingrediente de tu receta corresponde. <span class="nulo">— no aplica</span> = el proveedor lo ofrece pero esta semana no lo necesitas (no pasa al juez).</span></li>
+    <li><span class="m">3</span><span><b>Presentación:</b> lo que trae <i>una</i> unidad de venta (un bulto, una caja, una bolsa).</span></li>
+    <li><span class="m">4</span><span><b>Precio unitario:</b> precio por kg / L / unidad. Es lo que permite comparar una bolsa de 500 g con un bulto de 25 kg.</span></li>
+    <li><span class="m">5</span><span><b>Condiciones del proveedor:</b> pedido mínimo, envío y tiempo de entrega.</span></li>
+    <li><span class="m">6</span><span>Despliega el <b>texto original</b> para comparar con lo que entendió Grok.</span></li>
+  </ul>
+  <div class="caja tip"><div class="tit">Úsalo para</div><p>Verificar a ojo que Grok leyó bien los precios y las presentaciones. Si algo no cuadra (por ejemplo, un precio por libra que quedó como por kg), corrige el texto del <code>.txt</code> para que sea más claro y vuelve a correr.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="s" id="paso3">
+  <h2><span class="num">3</span>Juicio: ¿sirve cada oferta?</h2>
+  <p class="lead">El juez revisa cada oferta y responde tres preguntas cortas. Cada respuesta trae una <b>confianza</b> entre 0 y 1. Lo que el juez no tiene claro no se compra: va a revisión humana.</p>
+
+  <h3>Las tres preguntas (las responde Grok)</h3>
+  <div class="tabla"><table>
+    <tr><th>Pregunta</th><th>Respuestas</th><th>Ejemplo</th></tr>
+    <tr><td><b>¿Es el mismo producto?</b></td><td>S / N</td><td>“Pechuga con hueso” para una receta de pechuga limpia → <b>N</b></td></tr>
+    <tr><td><b>¿Qué calidad?</b></td><td>A (primera) · B (estándar) · C (segunda)</td><td>“Aguacate hass segunda, algunos maduros” → <b>C</b></td></tr>
+    <tr><td><b>¿Requiere revisión?</b></td><td>S / N</td><td>Algo ambiguo o riesgoso que una persona deba mirar → <b>S</b></td></tr>
+  </table></div>
+
+  <h3>De dónde sale la confianza: votación</h3>
+  <p>A Grok se le hace la misma pregunta <b>5 veces</b> y se cuentan los votos. Si las 5 respuestas coinciden, la confianza es alta; si se reparten, es baja.</p>
+  <div class="formula">confianza = (votos del ganador + 0,5) ÷ (votos totales + 1)</div>
+  <div class="tabla"><table>
+    <tr><th>Votos a favor de la respuesta ganadora</th><th class="num">Confianza</th><th>Con umbral 0,70</th></tr>
+    <tr><td>5 de 5</td><td class="num">0,92</td><td><span class="badge b-apta">pasa</span></td></tr>
+    <tr><td>4 de 5</td><td class="num">0,75</td><td><span class="badge b-apta">pasa</span></td></tr>
+    <tr><td>3 de 5</td><td class="num">0,58</td><td><span class="badge b-revision">a revisión</span></td></tr>
+  </table></div>
+  <p>En la práctica: <b>una oferta necesita que al menos 4 de 5 votos coincidan</b> en “mismo producto” y en “calidad” para entrar al plan.</p>
+
+  <h3>La cuarta pregunta: ¿el proveedor es confiable? (código, no IA)</h3>
+  <p>Esto no se le pregunta a Grok: sale de <code>historial_proveedores.csv</code>.</p>
+  <div class="formula">puntaje = 50 % puntualidad + 30 % calidad + 20 % sin reclamos<br>alta ≥ 0,85 · media ≥ 0,65 · baja &lt; 0,65<br>confianza del historial = entregas ÷ (entregas + 5)</div>
+  <div class="tabla"><table>
+    <tr><th>Proveedor</th><th class="num">Entregas</th><th class="num">Puntaje</th><th>Nivel</th><th class="num">Confianza</th></tr>
+    <tr><td>Distribuidora El Campo</td><td class="num">24</td><td class="num">0,90</td><td>alta</td><td class="num">0,83</td></tr>
+    <tr><td>Fruver Express</td><td class="num">5</td><td class="num">0,45</td><td>baja</td><td class="num">0,50</td></tr>
+    <tr><td>Proveedor nuevo</td><td class="num">0</td><td class="num">—</td><td>media</td><td class="num">0,00</td></tr>
+  </table></div>
+  <p>La confianza crece con el número de entregas: un proveedor con 5 entregas aún no dice mucho; uno con 30, sí.</p>
+
+  <h3>El veredicto final</h3>
+  <p>Con las respuestas, cada oferta queda en uno de tres estados. Las reglas se revisan en este orden:</p>
+  <div class="tabla"><table>
+    <tr><th>Si…</th><th>Veredicto</th></tr>
+    <tr><td>Está agotada</td><td><span class="badge b-descartada">descartada</span></td></tr>
+    <tr><td>No es el mismo producto</td><td><span class="badge b-descartada">descartada</span></td></tr>
+    <tr><td>Calidad por debajo del mínimo (por defecto B, o sea que C se descarta)</td><td><span class="badge b-descartada">descartada</span></td></tr>
+    <tr><td>El juez dijo “requiere revisión”</td><td><span class="badge b-revision">a revisión</span></td></tr>
+    <tr><td>Confianza en producto o calidad menor al umbral (0,70)</td><td><span class="badge b-revision">a revisión</span></td></tr>
+    <tr><td>Proveedor con historial malo (nivel baja y confianza ≥ 0,5)</td><td><span class="badge b-revision">a revisión</span></td></tr>
+    <tr><td>Nada de lo anterior</td><td><span class="badge b-apta">apta</span></td></tr>
+  </table></div>
+
+  <h3>Cómo leer una tarjeta de la columna “Juez”</h3>
+  <div class="maqueta">
+    <div class="cab"><span class="punto" style="background:var(--jev)"></span><b>Juez · Grok por votación</b></div>
+    <div class="cuerpo"><div class="card elegida">
+      <div class="t"><b>Carne molida especial 90/10</b><span class="sub">Distribuidora El Campo</span>
+        <span class="badge b-apta">apta</span> <span class="m">1</span><span class="badge b-elegida">✓ al plan</span> <span class="m">2</span><span class="der">grok-votos · 910 ms · 312 tok</span></div>
+      <div class="sub">para <b>carne molida de res</b> · $12.400/kg · especial 90/10</div>
+      <div class="preg"><span class="lbl">¿mismo producto?</span><div class="barra"><i style="width:92%"></i><span class="umbral" style="left:70%"></span></div><span class="val">sí 0.92</span></div>
+      <div class="preg"><span class="lbl">calidad <span class="m">3</span></span><div class="barra"><i style="width:75%"></i><span class="umbral" style="left:70%"></span></div><span class="val">A 0.75</span></div>
+      <div class="preg"><span class="lbl">¿requiere revisión?</span><div class="barra"><i style="width:92%"></i><span class="umbral" style="left:70%"></span></div><span class="val">no 0.92</span></div>
+      <div class="preg"><span class="lbl">proveedor <span class="m">4</span></span><span class="sub">por historial, en código</span><span class="val">alta 0.83</span></div>
+      <div class="votos">votos: S A N · S A N · S B N · S A N · S A N <span class="m">5</span></div>
+    </div>
+    <div class="card" style="margin-top:8px;opacity:.85">
+      <div class="t"><b>Aguacate hass</b><span class="sub">Fruver Express</span><span class="badge b-descartada">descartada</span></div>
+      <div class="preg"><span class="lbl">calidad</span><div class="barra"><i class="baja" style="width:58%"></i><span class="umbral" style="left:70%"></span></div><span class="val">C 0.58</span></div>
+      <div class="motivo">→ calidad C bajo el mínimo B <span class="m">6</span></div>
+    </div></div>
+  </div>
+  <ul class="notas">
+    <li><span class="m">1</span><span><b>Veredicto:</b> <span class="badge b-apta">apta</span> <span class="badge b-revision">a revisión</span> o <span class="badge b-descartada">descartada</span>.</span></li>
+    <li><span class="m">2</span><span><b>✓ al plan</b> aparece cuando el optimizador la eligió (borde verde). Una oferta puede ser apta y no elegirse si otra es más barata.</span></li>
+    <li><span class="m">3</span><span><b>Barra de confianza.</b> La raya vertical es el umbral (0,70). Morada si lo supera, <span style="color:var(--warn)">naranja</span> si queda por debajo. Si el juez está calibrado, entre paréntesis ves el valor antes de calibrar.</span></li>
+    <li><span class="m">4</span><span><b>Proveedor:</b> nivel y confianza que salen del historial, sin IA.</span></li>
+    <li><span class="m">5</span><span><b>Votos:</b> las 5 respuestas crudas de Grok (“S A N” = sí es el mismo, calidad A, no requiere revisión). Aquí 4 dijeron A y 1 dijo B → calidad A con 0,75.</span></li>
+    <li><span class="m">6</span><span><b>Motivo:</b> por qué se descartó o se mandó a revisión.</span></li>
+  </ul>
+  <p>Arriba de la columna ves el resumen: <code>✓ aptas ? a revisión ✗ descartadas</code>, el tiempo promedio y los tokens por juicio.</p>
+  <div class="caja tip"><div class="tit">Úsalo para</div><p>Entender por qué una oferta barata no entró al plan. Si el juez se equivoca seguido en algo, márcalo con ✓/✗ (modo Real) para calibrarlo.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="s" id="paso4">
+  <h2><span class="num">4</span>Optimización: el pedido más barato</h2>
+  <p class="lead">Código puro. Con las ofertas aptas, arma el pedido de menor costo total.</p>
+
+  <h3>Cómo decide</h3>
+  <ol>
+    <li><b>Por cada insumo, la oferta más barata en la vida real</b>, no la de menor precio por kg. No puedes comprar medio bulto: si necesitas 5 kg, un bulto de 20 kg a $2.400/kg ($48.000) sale más caro que 6 bolsas de 1 kg a $2.800/kg ($16.800).</li>
+    <li><b>En empate de precio</b>, gana mejor calidad y luego el proveedor más confiable.</li>
+    <li><b>Agrupa por proveedor</b> y suma el envío (o lo quita si pasas del monto de envío gratis).</li>
+    <li><b>Revisa el pedido mínimo.</b> Si a un proveedor no le llegas al mínimo, mueve esas líneas a la siguiente mejor opción.</li>
+  </ol>
+
+  <h3>Ejemplo: la carne molida</h3>
+  <div class="calc">
+    <span class="k">Necesitas</span><span class="v">34,0 kg</span>
+    <span class="k">Oferta elegida</span><span class="v">bandeja x 5 kg a $62.000</span>
+    <span class="k">Bandejas</span><span class="v">34 ÷ 5 = 6,8 → 7 bandejas (35 kg)</span>
+    <span class="k">Subtotal</span><span class="v res">7 × $62.000 = $434.000</span>
+  </div>
+
+  <h3>Cómo leer el panel “Plan de compra”</h3>
+  <div class="maqueta">
+    <div class="cab"><b>Plan de compra</b><span class="rol">optimizador</span></div>
+    <div class="cuerpo">
+      <div class="prov"><h4>Distribuidora El Campo <span class="m">1</span><span>$1.236.000</span></h4>
+        <table>
+          <tr><td>7 × Carne molida especial 90/10 <span class="m">2</span></td><td class="num">35 kg</td><td class="num">A · 0.75 <span class="m">3</span></td><td class="num">$434.000</td></tr>
+          <tr><td>5 × Pechuga sin hueso, caja 10 kg</td><td class="num">50 kg</td><td class="num">A · 0.92</td><td class="num">$690.000</td></tr>
+        </table></div>
+      <div class="prov" style="margin-top:10px"><h4>Mayorista Santander <span class="badge b-revision">no llega al mínimo</span><span>$304.100</span></h4>
+        <table>
+          <tr><td>4 × Huevo AA cubeta x 30</td><td class="num">120 unidad</td><td class="num">A · 0.92</td><td class="num">$63.600</td></tr>
+          <tr><td class="sub">envío <span class="m">4</span></td><td></td><td></td><td class="num">$20.000</td></tr>
+        </table></div>
+      <div style="font:600 15px var(--mono);text-align:right;margin-top:8px">Total $1.976.900 <span class="m">5</span></div>
+      <div class="sub" style="margin-top:8px;font-weight:600;text-transform:uppercase">Sin oferta apta <span class="m">6</span></div>
+      <div class="sub">• queso parmesano</div>
+      <div class="sub" style="margin-top:8px;font-weight:600;text-transform:uppercase">Para revisión humana (3) <span class="m">7</span></div>
+      <div class="sub">• platano maduro ← Fruver Express: Plátano maduro — proveedor con historial malo (0.50)</div>
+    </div>
+  </div>
+  <p class="sub">Ejemplo ilustrativo: los proveedores, avisos y totales cambian en cada corrida.</p>
+  <ul class="notas">
+    <li><span class="m">1</span><span><b>Un bloque por proveedor</b> con su total (productos + envío). Ordenados del pedido más grande al más pequeño.</span></li>
+    <li><span class="m">2</span><span><b>Unidades × producto</b> y a la derecha la cantidad real que llega. Suele ser un poco más de lo que pediste por el redondeo a presentaciones.</span></li>
+    <li><span class="m">3</span><span><b>Calidad · confianza</b> del juez. La confianza es la menor entre “mismo producto” y “calidad”.</span></li>
+    <li><span class="m">4</span><span><b>Envío</b> del proveedor, si no llegaste al monto de envío gratis.</span></li>
+    <li><span class="m">5</span><span><b>Total</b> de la compra de la semana.</span></li>
+    <li><span class="m">6</span><span><b>Sin oferta apta:</b> insumos que necesitas pero ninguna oferta pasó los filtros. <b>Hay que cotizar a mano.</b></span></li>
+    <li><span class="m">7</span><span><b>Para revisión humana:</b> ofertas que podrían servir pero el juez no estaba seguro. Míralas tú; si una es buena, puedes pedirla aparte.</span></li>
+  </ul>
+  <div class="caja ojo"><div class="tit">“No llega al mínimo”</div><p>Significa que ese proveedor quedó por debajo de su pedido mínimo y no había otra opción apta a donde mover las líneas. Llámalo y negocia, o agrega algo que te sirva para completar.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="s" id="paso5">
+  <h2><span class="num">5</span>Reporte: el mensaje para aprobar</h2>
+  <p class="lead">El plan se convierte en un mensaje corto estilo WhatsApp para el dueño o el chef. En modo Real lo redacta Grok (sin cambiar ningún número); en modo Mock usa una plantilla.</p>
+  <h3>Cómo leerlo</h3>
+  <pre>⚠️ Urgente — se agotan en &lt;2 días:            ← 1. qué hay que pedir ya
+aguacate hass (1.4 d), carne molida (1.5 d)…
+
+*Distribuidora El Campo* — $1.236.000          ← 2. un bloque por proveedor
+• 7 × Carne molida especial = 35 kg → $434.000 [A]
+…
+Total: $1.976.900                              ← 3. total a pagar
+
+Para que revises tú: …                         ← 4. lo que el agente no decidió
+Sobrantes en bodega: …                         ← 5. no comprar, revisar rotación
+
+¿Apruebas el pedido? Responde *sí*…            ← 6. tu decisión</pre>
+  <div class="caja tip"><div class="tit">Úsalo para</div><p>Aprobar o corregir. Este mensaje está pensado para reenviarse tal cual por WhatsApp. El agente <b>nunca</b> hace pedidos solo: tú decides.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="s" id="interfaz">
+  <h2>La barra superior de la interfaz</h2>
+  <div class="tabla"><table>
+    <tr><th>Control</th><th>Para qué</th></tr>
+    <tr><td><b>Mock / Real</b></td><td><b>Mock:</b> sin APIs, gratis, con ofertas de ejemplo y un juez de reglas. Para aprender y probar. <b>Real:</b> usa Grok de verdad; necesita <code>XAI_API_KEY</code> en <code>.env</code>.</td></tr>
+    <tr><td><b>Fecha</b></td><td>Desde qué día se pronostica la semana. Vacío = hoy. Útil para repetir una corrida pasada.</td></tr>
+    <tr><td><b>Ritmo</b></td><td>Solo en Mock: qué tan lento se muestra la animación, para seguirla con calma.</td></tr>
+    <tr><td><b>Correr</b></td><td>Lanza las 5 etapas. Solo puede haber una corrida a la vez.</td></tr>
+    <tr><td><span class="chip g">Grok: <b>grok-4.3</b></span></td><td>El modelo que lee cotizaciones y redacta el reporte.</td></tr>
+    <tr><td><span class="chip j">Juez: <b>… × 5 votos</b></span></td><td>El modelo del juez y cuántas veces vota cada pregunta.</td></tr>
+    <tr><td><span class="chip">tokens: <b>18.400</b> · 31 llam.</span></td><td>Consumo total de la corrida (lo que se paga a xAI) y número de llamadas.</td></tr>
+    <tr><td><span class="chip">umbral <b>0.7</b> · calidad mín. <b>B</b></span></td><td>Las dos reglas que deciden qué ofertas pasan. Se cambian en <code>.env</code>.</td></tr>
+  </table></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="s" id="rutina">
+  <h2>Rutina semanal recomendada</h2>
+  <ol class="pasos">
+    <li><b>Exporta las ventas</b> del POS y reemplaza <code>data/ventas.csv</code>.</li>
+    <li><b>Cuenta la bodega</b> y actualiza <code>data/inventario.csv</code>. Es el dato que más afecta el resultado.</li>
+    <li><b>Pega las cotizaciones</b> de la semana en <code>data/proveedores/</code>, un <code>.txt</code> por proveedor, tal como llegaron.</li>
+    <li><b>Abre la interfaz</b> con <code>python ui.py</code>, elige <b>Real</b> y pulsa <b>Correr</b>.</li>
+    <li><b>Revisa la Demanda</b>: ¿los rojos tienen sentido? ¿algún número absurdo?</li>
+    <li><b>Mira la columna Grok</b>: ¿leyó bien precios y presentaciones?</li>
+    <li><b>Revisa “Para revisión humana” y “Sin oferta apta”</b>: decide esas compras tú mismo o cotiza de nuevo.</li>
+    <li><b>Aprueba el reporte</b> y haz los pedidos.</li>
+    <li><b>Cuando llegue la mercancía</b>, actualiza <code>historial_proveedores.csv</code>: suma la entrega, si llegó a tiempo, la calidad (1–5) y si hubo reclamo. Así el agente aprende quién cumple.</li>
+  </ol>
+</section>
+
+<!-- ============================================================ -->
+<section class="s" id="calibrar">
+  <h2>Calibrar al juez</h2>
+  <p>Una confianza de 0,80 debería significar “acierta 8 de cada 10 veces”. Al principio eso no está garantizado; calibrar lo corrige con tu propia experiencia.</p>
+  <ol class="pasos">
+    <li><b>Corre en modo Real.</b> Junto a cada respuesta del juez aparecen dos botones: <b style="display:inline;color:var(--ok)">✓</b> (acertó) y <b style="display:inline;color:var(--bad)">✗</b> (se equivocó).</li>
+    <li><b>Márcalos</b> en las preguntas que puedas juzgar. Cada marca se guarda en <code>data/etiquetas.csv</code>.</li>
+    <li><b>Cuando tengas 20 o más por pregunta</b> (con al menos un acierto y un fallo), corre:</li>
+  </ol>
+  <pre>python calibrar.py</pre>
+  <p>Te muestra una tabla con el <b>ECE</b> (error de calibración) antes y después; más bajo es mejor. Crea <code>data/calibracion.json</code> y desde la siguiente corrida el juez lo usa solo. El aviso arriba de la columna del juez se pone verde.</p>
+</section>
+
+<!-- ============================================================ -->
+<section class="s" id="salidas">
+  <h2>Archivos de salida</h2>
+  <p>Cada corrida escribe en <code>salida/</code> (y sobrescribe la anterior):</p>
+  <div class="tabla"><table>
+    <tr><th>Archivo</th><th>Qué contiene</th><th>Úsalo para</th></tr>
+    <tr><td><code>plan.json</code></td><td>Pedidos por proveedor, líneas, totales, sin oferta, para revisión y sobrantes</td><td>Integrar con otro sistema o guardar el histórico de compras</td></tr>
+    <tr><td><code>evaluaciones.json</code></td><td>Cada oferta con su juicio completo: respuestas, confianzas, votos</td><td>Auditar por qué se eligió o descartó algo</td></tr>
+    <tr><td><code>reporte.txt</code></td><td>El mensaje final</td><td>Copiar y enviar por WhatsApp</td></tr>
+  </table></div>
+  <div class="caja tip"><div class="tit">Guarda el histórico</div><p>Si quieres comparar semanas, copia la carpeta <code>salida/</code> con la fecha antes de la siguiente corrida.</p></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="s" id="ajustes">
+  <h2>Ajustes (.env)</h2>
+  <p>Se cambian en el archivo <code>.env</code> y aplican desde la siguiente corrida.</p>
+  <div class="tabla"><table>
+    <tr><th>Variable</th><th class="num">Valor</th><th>Qué cambia</th></tr>
+    <tr><td><code>HORIZONTE_DIAS</code></td><td class="num">7</td><td>Para cuántos días se compra. Súbelo si pides cada 10 días.</td></tr>
+    <tr><td><code>STOCK_SEGURIDAD</code></td><td class="num">0.15</td><td>Colchón extra. 0,15 = 15 %. Más alto = menos riesgo de quedarte sin, más capital en bodega.</td></tr>
+    <tr><td><code>UMBRAL_CONFIANZA</code></td><td class="num">0.70</td><td>Confianza mínima para comprar sin preguntarte. Más alto = más ofertas a revisión humana.</td></tr>
+    <tr><td><code>CALIDAD_MINIMA</code></td><td class="num">B</td><td>A = solo primera; B = primera y estándar; C = acepta todo.</td></tr>
+    <tr><td><code>JUEZ_MUESTRAS</code></td><td class="num">5</td><td>Votos por pregunta. Más votos = confianza más fina, más tokens.</td></tr>
+    <tr><td><code>GROK_MODEL</code> / <code>JUEZ_MODEL</code></td><td class="num">—</td><td>Modelos de Grok para leer/redactar y para juzgar.</td></tr>
+  </table></div>
+</section>
+
+<!-- ============================================================ -->
+<section class="s" id="faq">
+  <h2>Preguntas frecuentes</h2>
+  <details class="faq"><summary>Un insumo aparece en “Sin oferta apta” aunque un proveedor lo vende</summary>
+    <p>Mira su tarjeta en la columna Juez: el motivo dice si fue por calidad, agotado, “no es el mismo producto” o baja confianza (en ese caso está en “Para revisión humana”). Si Grok lo marcó como <i>no aplica</i>, revisa que el nombre en la cotización se parezca al de tu receta.</p></details>
+  <details class="faq"><summary>El agente pide cantidades absurdas</summary>
+    <p>Casi siempre es el inventario: un insumo con nombre distinto entre <code>recetas.csv</code> e <code>inventario.csv</code> cuenta como 0 en bodega. También revisa las unidades de la receta (g vs kg).</p></details>
+  <details class="faq"><summary>¿Por qué eligió un proveedor más caro por kg?</summary>
+    <p>Porque el más barato por kg vende presentaciones grandes y tendrías que comprar de más, o porque el más barato no llegaba al pedido mínimo, o su oferta no fue apta.</p></details>
+  <details class="faq"><summary>Un proveedor confiable aparece como “media 0.00”</summary>
+    <p>No está en <code>historial_proveedores.csv</code> (o su nombre es muy distinto). Agrégalo con sus entregas para que cuente.</p></details>
+  <details class="faq"><summary>Sale “Falta XAI_API_KEY”</summary>
+    <p>Copia <code>.env.example</code> a <code>.env</code> y pon tu llave de xAI, o usa el modo Mock.</p></details>
+  <details class="faq"><summary>¿El agente hace pedidos solo?</summary>
+    <p>No. Solo propone. Tú apruebas y haces el pedido.</p></details>
+</section>
+
+</article>
+</div>
+
+<script>
+// Resalta en el índice la sección visible
+const enlaces = [...document.querySelectorAll("#toc a")];
+const porId = Object.fromEntries(enlaces.map(a => [a.getAttribute("href").slice(1), a]));
+const obs = new IntersectionObserver(entradas => {
+  for (const e of entradas) if (e.isIntersecting) {
+    enlaces.forEach(a => a.classList.remove("activo"));
+    porId[e.target.id]?.classList.add("activo");
+  }
+}, {rootMargin: "-80px 0px -70% 0px"});
+document.querySelectorAll("section.s").forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+openai>=1.50
+pydantic>=2.6
+pandas>=2.2
+python-dotenv>=1.0
+# Opcional: SDK oficial de Jev (TypeSafe). Si no lo instalas, el juez usa Grok como respaldo.
+# typesafe-sdk
