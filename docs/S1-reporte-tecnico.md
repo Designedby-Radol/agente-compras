@@ -25,8 +25,11 @@ El juez es donde más se nota, porque se repite por cada oferta. Medido sobre la
 |---|---|---|---|
 | Razonamiento + salida | ~1.422 tokens | 15 | **−99 %** |
 | Entrada nueva (sin caché) | 1.140 | ~150 | **−87 %** |
-| Entrada desde caché (más barata) | 0 | ~1.600 | sube |
+| Entrada desde caché (más barata) | solo las instrucciones fijas* | ~1.600 | sube |
 | Tiempo | ~27 s | ~0,8 s | **−97 %** |
+
+\* En la prueba (la misma oferta 3 veces) el juez anterior sacó 512–1.024 de sus 1.140 tokens
+de caché; con ofertas distintas, solo se reutilizarían las instrucciones fijas.
 
 En las 24 ofertas de una corrida (estimado a partir de la medición anterior):
 **~34.000 tokens de razonamiento y salida pasan a ~360**, y el juicio pasa de ~11 min a 19 s.
