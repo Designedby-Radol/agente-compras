@@ -24,9 +24,10 @@ reporte vive en `docs/`. Así el link del reporte apunta a la versión exacta en
 - **URL del reporte técnico:** `https://github.com/Designedby-Radol/agente-compras/blob/s1/docs/S1-reporte-tecnico.md`
 - **Notas de la entrega** (para pegar):
 
-> Logrado: agente corriendo end-to-end con Grok real (demanda → extracción de 5 cotizaciones
-> → juicio de 24 ofertas → plan → reporte para aprobación), con interfaz en vivo que muestra
-> cada llamada y sus tokens.
+> Logrado: agente corriendo end-to-end con llamadas reales a Grok sobre un escenario de
+> datos ficticios (restaurante, ventas, proveedores y cotizaciones inventados): demanda →
+> extracción de 5 cotizaciones → juicio de 24 ofertas → plan → reporte para aprobación,
+> con interfaz en vivo que muestra cada llamada y sus tokens.
 > Idea clave: adaptamos el proceso para que cada tarea gaste solo los tokens que necesita.
 > Las cuentas y la confiabilidad del proveedor se hacen en código (0 tokens); Grok con
 > razonamiento solo lee cotizaciones; y el juez, que se repite por cada oferta, se rediseñó:
@@ -35,8 +36,9 @@ reporte vive en `docs/`. Así el link del reporte apunta a la versión exacta en
 > de ~1.422 a 15 tokens (−99 %), entrada sin caché de 1.140 a ~150 (−87 %), y de ~27 s a
 > ~0,8 s. En una corrida, el juicio pasa de ~11 min a 19 s, y el plan cubre 10 de 10 insumos
 > (antes 2 de 10): $1.949.600 COP.
-> Falló / pendiente: xAI no expone logprobs, así que la confianza sale de votos y aún no
-> está calibrada. La extracción es el siguiente punto a optimizar (~8.200 tokens de
+> Falló / pendiente: todo se probó con datos ficticios; los montos en pesos describen el
+> escenario de prueba (datos reales = S3). xAI no expone logprobs, así que la confianza
+> sale de votos y aún no está calibrada. La extracción es el siguiente punto a optimizar (~8.200 tokens de
 > razonamiento, ~40 s por cotización).
 > Costo por corrida: 30 llamadas; 74.882 tokens, de los cuales 66 % de la entrada viene
 > de caché y 10.710 son de razonamiento (casi todos en la extracción).

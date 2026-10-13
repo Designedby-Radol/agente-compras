@@ -6,6 +6,12 @@ Agente de compras para restaurantes: predice qué insumos se agotan, lee cotizac
 crudas de proveedores (WhatsApp, PDF, voz transcrita, catálogo web), juzga cada oferta y
 propone la compra de menor costo. **El dueño aprueba antes de que se compre nada.**
 
+> **Datos ficticios.** En esta entrega el restaurante, las ventas, las recetas, el
+> inventario, los proveedores, su historial y las cotizaciones son inventados (`data/`).
+> Lo que es real: las llamadas a Grok y las mediciones de tokens, tiempo y comportamiento
+> del juez. Los montos en pesos y el "10 de 10 insumos" describen este escenario de
+> prueba, no un negocio. Correr con datos de un restaurante real es la entrega S3.
+
 ## Idea central: cada tarea gasta solo los tokens que necesita
 
 En vez de mandar todo a un modelo grande que "piensa", el agente separa el proceso y

@@ -4,6 +4,10 @@ Predice qué insumos se agotan, lee cotizaciones de proveedores, juzga cada
 oferta con Grok y propone la compra de menor costo.
 El dueño aprueba antes de que se ejecute nada.
 
+> Los archivos de `data/` son un **escenario ficticio** (restaurante, ventas, proveedores y
+> cotizaciones inventados) para probar el agente. Para usarlo con un negocio real, ver
+> *Conectar un restaurante real* más abajo.
+
 ## Arquitectura
 
 ```
