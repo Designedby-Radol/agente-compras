@@ -6,6 +6,35 @@ Agente de compras para restaurantes: predice qué insumos se agotan, lee cotizac
 crudas de proveedores (WhatsApp, PDF, voz transcrita, catálogo web), juzga cada oferta y
 propone la compra de menor costo. **El dueño aprueba antes de que se compre nada.**
 
+## Idea central: cada tarea gasta solo los tokens que necesita
+
+En vez de mandar todo a un modelo grande que "piensa", el agente separa el proceso y
+le da a cada tarea el recurso justo:
+
+| Tarea | Qué necesita | Recurso asignado | Tokens |
+|---|---|---|---|
+| Calcular demanda, costos, envíos | exactitud | código | **0** |
+| Confiabilidad del proveedor | contar historial | código | **0** |
+| Leer cotizaciones desordenadas | comprensión | Grok con razonamiento | los necesarios |
+| Juzgar cada oferta (×24) | una decisión corta | Grok **sin** razonamiento, 3 letras, votación | **mínimos** |
+| Redactar el reporte | redacción | Grok | 1 llamada |
+
+El juez es donde más se nota, porque se repite por cada oferta. Medido sobre la misma oferta:
+
+| Por oferta | Antes (`grok-4.6`, JSON) | Ahora | Cambio |
+|---|---|---|---|
+| Razonamiento + salida | ~1.422 tokens | 15 | **−99 %** |
+| Entrada nueva (sin caché) | 1.140 | ~150 | **−87 %** |
+| Entrada desde caché (más barata) | 0 | ~1.600 | sube |
+| Tiempo | ~27 s | ~0,8 s | **−97 %** |
+
+En las 24 ofertas de una corrida (estimado a partir de la medición anterior):
+**~34.000 tokens de razonamiento y salida pasan a ~360**, y el juicio pasa de ~11 min a 19 s.
+Además mejora el resultado: el plan cubre 10 de 10 insumos en vez de 2.
+
+Lo que queda por optimizar con la misma idea es la extracción: hoy concentra ~8.200
+tokens de razonamiento y ~40 s por cotización.
+
 ## Arquitectura
 
 | Etapa | Archivo | Quién | Qué hace |

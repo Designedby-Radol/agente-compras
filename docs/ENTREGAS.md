@@ -24,17 +24,22 @@ reporte vive en `docs/`. Así el link del reporte apunta a la versión exacta en
 - **URL del reporte técnico:** `https://github.com/Designedby-Radol/agente-compras/blob/s1/docs/S1-reporte-tecnico.md`
 - **Notas de la entrega** (para pegar):
 
-> Logrado: pipeline completo corriendo con datos de ejemplo y Grok real:
-> demanda → extracción de 5 cotizaciones → juicio de 24 ofertas → plan de compra → reporte
-> para aprobación. Interfaz en vivo (`python ui.py`) que muestra cada llamada.
-> Juez rediseñado: respuestas tipadas de 3 letras, confianza por votación (5 muestras en
-> una llamada), modelo sin razonamiento: de ~27 s a ~0,8 s por oferta, 0 tokens de
-> razonamiento. Resultado: compra 10 de 10 insumos (antes 2 de 10), $1.949.600 COP.
-> Falló / pendiente: xAI no expone logprobs (probado), así que la confianza sale de
-> votos y aún no está calibrada (0 etiquetas). La extracción con grok-4.6 es el cuello
-> de botella: ~40 s por cotización.
-> Costo por corrida: 74.882 tokens en 30 llamadas (66 % de la entrada desde caché),
-> 10.710 de razonamiento, casi todos en la extracción.
+> Logrado: agente corriendo end-to-end con Grok real (demanda → extracción de 5 cotizaciones
+> → juicio de 24 ofertas → plan → reporte para aprobación), con interfaz en vivo que muestra
+> cada llamada y sus tokens.
+> Idea clave: adaptamos el proceso para que cada tarea gaste solo los tokens que necesita.
+> Las cuentas y la confiabilidad del proveedor se hacen en código (0 tokens); Grok con
+> razonamiento solo lee cotizaciones; y el juez, que se repite por cada oferta, se rediseñó:
+> modelo sin razonamiento, respuesta tipada de 3 letras y confianza por votación (5 muestras
+> en una llamada, con el prompt reutilizado desde caché). Por oferta: razonamiento + salida
+> de ~1.422 a 15 tokens (−99 %), entrada sin caché de 1.140 a ~150 (−87 %), y de ~27 s a
+> ~0,8 s. En una corrida, el juicio pasa de ~11 min a 19 s, y el plan cubre 10 de 10 insumos
+> (antes 2 de 10): $1.949.600 COP.
+> Falló / pendiente: xAI no expone logprobs, así que la confianza sale de votos y aún no
+> está calibrada. La extracción es el siguiente punto a optimizar (~8.200 tokens de
+> razonamiento, ~40 s por cotización).
+> Costo por corrida: 30 llamadas; 74.882 tokens, de los cuales 66 % de la entrada viene
+> de caché y 10.710 son de razonamiento (casi todos en la extracción).
 
 **Guion del video (~2 min):**
 1. (15 s) Qué es: agente de compras para restaurantes; el dueño aprueba antes de comprar.
